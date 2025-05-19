@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2025-present Matt Koski <maccam912@gmail.com>
 #
 # SPDX-License-Identifier: MIT
-"""Operations for managing lots in the database."""
+"""Operations for managing lots and sites in the database."""
 
 from datetime import date
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from inv.db.models import Lot
+from inv.db.models import Lot, Site
 
 
 def create_lot(
@@ -153,6 +153,120 @@ def delete_lot(session: Session, lot_number: str) -> bool:
 
     try:
         session.delete(lot)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return True
+
+
+def create_site(session: Session, site_name: str, contact_info: str | None = None) -> Site:
+    """
+    Create a new site in the database.
+
+    Args:
+        session: Database session
+        site_name: Unique identifier for the site
+        contact_info: Contact information for the site
+
+    Returns:
+        The created site object
+
+    Raises:
+        IntegrityError: If a site with the same site name already exists
+    """
+    site = Site(site_name=site_name, contact_info=contact_info)
+    session.add(site)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+    return site
+
+
+def read_site(session: Session, site_name: str) -> Site | None:
+    """
+    Read a site from the database by its site name.
+
+    Args:
+        session: Database session
+        site_name: Unique identifier for the site
+
+    Returns:
+        The site object if found, None otherwise
+    """
+    return session.query(Site).filter_by(site_name=site_name).first()
+
+
+def read_sites(session: Session) -> list[Site]:
+    """
+    Read all sites from the database.
+
+    Args:
+        session: Database session
+
+    Returns:
+        A list of all site objects
+    """
+    return session.query(Site).all()
+
+
+def update_site(
+    session: Session, site_name: str, contact_info: str | None = None
+) -> Site | None:
+    """
+    Update a site in the database.
+
+    Args:
+        session: Database session
+        site_name: Unique identifier for the site
+        contact_info: New contact information (if None, not updated)
+
+    Returns:
+        The updated site object if found, None otherwise
+
+    Raises:
+        IntegrityError: If the update violates database constraints
+    """
+    site = read_site(session, site_name)
+    if site is None:
+        return None
+
+    if contact_info is not None:
+        site.contact_info = contact_info
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return site
+
+
+def delete_site(session: Session, site_name: str) -> bool:
+    """
+    Delete a site from the database.
+
+    Args:
+        session: Database session
+        site_name: Unique identifier for the site to delete
+
+    Returns:
+        True if the site was deleted, False if not found
+
+    Raises:
+        IntegrityError: If the deletion would violate foreign key constraints
+                        (e.g., if there are related shipments or inventory records)
+    """
+    site = read_site(session, site_name)
+    if site is None:
+        return False
+
+    try:
+        session.delete(site)
         session.commit()
     except IntegrityError:
         session.rollback()
