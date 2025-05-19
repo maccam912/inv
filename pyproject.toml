@@ -55,7 +55,7 @@ typecheck = "mypy inv tests {args}"
 check = ["format", "lint", "typecheck", "cov"]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["37", "38", "39", "310", "311"]
+python = ["312"]
 
 [tool.coverage.run]
 branch = true
