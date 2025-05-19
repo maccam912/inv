@@ -50,6 +50,7 @@ no-cov = "cov --no-cov {args}"
 lint = "ruff check inv tests {args}"
 format = "ruff format inv tests {args}"
 typecheck = "mypy inv tests {args}"
+fixup = ["ruff check inv tests --fix", "ruff format inv tests"]
 check = ["format", "lint", "typecheck", "cov"]
 
 [[tool.hatch.envs.test.matrix]]
