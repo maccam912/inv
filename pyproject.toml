@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "inv"
 description = ''
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 license = "MIT"
 keywords = []
 authors = [
@@ -15,12 +15,14 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
   "click",
+  "sqlalchemy>=2.0.0",
+  "textual>=0.52.0",
 ]
 dynamic = ["version"]
 
@@ -51,7 +53,7 @@ typecheck = "mypy inv tests {args}"
 check = ["format", "lint", "typecheck", "cov"]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["313"]
+python = ["312"]
 
 [tool.coverage.run]
 branch = true
@@ -78,7 +80,7 @@ ignore = ["E501"]
 quote-style = "double"
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
