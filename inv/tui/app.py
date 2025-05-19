@@ -1,6 +1,6 @@
-\
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer
+
 
 class InventoryApp(App):
     """A Textual application to manage inventory."""
@@ -15,6 +15,7 @@ class InventoryApp(App):
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
         self.dark = not self.dark
+
 
 if __name__ == "__main__":
     app = InventoryApp()
