@@ -1,4 +1,3 @@
-\
 # Define SQLAlchemy models here
 # Example:
 # from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey

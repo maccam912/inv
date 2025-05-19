@@ -3,10 +3,14 @@
 # SPDX-License-Identifier: MIT
 import click
 
-from ..__about__ import __version__
+from inv.__about__ import __version__
 
-@click.group(context_settings={'help_option_names': ['-h', '--help']}, invoke_without_command=True)
-@click.version_option(version=__version__, prog_name='inv')
+
+@click.group(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    invoke_without_command=True,
+)
+@click.version_option(version=__version__, prog_name="inv")
 @click.pass_context
 def inv(ctx: click.Context):
     if ctx.invoked_subcommand is None:
@@ -14,6 +18,6 @@ def inv(ctx: click.Context):
         # from .tui.app import InventoryApp
         # app = InventoryApp()
         # app.run()
-        click.echo('Launching TUI... (not implemented yet)')
+        click.echo("Launching TUI... (not implemented yet)")
     else:
-        pass # Handle subcommands if any are added later
+        pass  # Handle subcommands if any are added later
