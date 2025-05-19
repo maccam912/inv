@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 import click
 
-from ..__about__ import __version__
+from inv.__about__ import __version__
 
 
 @click.group(
