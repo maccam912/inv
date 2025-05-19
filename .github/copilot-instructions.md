@@ -9,7 +9,5 @@ Always write testable code, and add unit tests. Also document your code with doc
 
 Use types where possible.
 
-`hatch run check` can be used to check for type errors, linting issues, and formatting problems, plus run tests.
+The devcontainer has uv and uvx preinstalled. Feel free to run `uvx hatch run check` to verify changes. It can be used to check for type errors, linting issues, and formatting problems, plus run tests.
 It all must be passing before a PR can be merged.
-
-The devcontainer has hatch and uv preinstalled. Feel free to run `hatch run check` to verify changes.
