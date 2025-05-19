@@ -10,4 +10,5 @@ Always write testable code, and add unit tests. Also document your code with doc
 Use types where possible.
 
 The devcontainer has uv and uvx preinstalled. Feel free to run `uvx hatch run check` to verify changes. It can be used to check for type errors, linting issues, and formatting problems, plus run tests.
+Also run `uvx hatch run fixup` regularly to fix linting and formatting issues automatically.
 It all must be passing before a PR can be merged.
