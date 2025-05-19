@@ -43,10 +43,16 @@ path = "inv/__about__.py"
 dependencies = [
   "pytest",
   "pytest-cov",
+  "ruff",
+  "mypy",
 ]
 [tool.hatch.envs.default.scripts]
 cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=inv --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
+lint = "ruff check inv tests {args}"
+format = "ruff format inv tests {args}"
+typecheck = "mypy inv tests {args}"
+check = ["format", "lint", "typecheck", "cov"]
 
 [[tool.hatch.envs.test.matrix]]
 python = ["37", "38", "39", "310", "311"]
@@ -64,3 +70,17 @@ exclude_lines = [
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
 ]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I", "UP", "PL", "TID"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
