@@ -21,6 +21,8 @@ classifiers = [
 ]
 dependencies = [
   "click",
+  "sqlalchemy>=2.0.0",
+  "textual>=0.52.0",
 ]
 dynamic = ["version"]
 
