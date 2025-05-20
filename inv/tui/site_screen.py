@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.containers import Container
-from textual.widgets import DataTable, Header, Label
+from textual.widgets import DataTable, Label
 
 from inv.db.operations import read_sites
 
@@ -38,10 +38,9 @@ class SiteScreen(Container):
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the site screen."""
-        yield Header(show_clock=True)
         yield Label("Site Management", classes="title")
         yield DataTable(id="sites_table")
-        yield Label("Press 'b' to go back to dashboard", classes="help")
+        # No need for the help text - it's in the footer now
 
     def on_mount(self) -> None:
         """Set up the screen when it's mounted."""
