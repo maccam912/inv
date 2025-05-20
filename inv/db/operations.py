@@ -8,7 +8,7 @@ from datetime import date
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from inv.db.models import Lot, Shipment, Site
+from inv.db.models import Inventory, Lot, Shipment, Site
 
 
 def create_lot(
@@ -437,3 +437,226 @@ def delete_shipment(session: Session, shipment_id: int) -> bool:
         raise
 
     return True
+
+
+def create_inventory(
+    session: Session, lot_number: str, site_name: str, current_quantity: int
+) -> Inventory:
+    """
+    Create a new inventory record in the database.
+
+    Args:
+        session: Database session
+        lot_number: Reference to the lot
+        site_name: Reference to the site where the inventory is located
+        current_quantity: Current quantity of items in stock
+
+    Returns:
+        The created inventory object
+
+    Raises:
+        IntegrityError: If a record with the same lot_number and site_name already exists
+                        or if the lot_number or site_name doesn't exist in the database
+    """
+    inventory = Inventory(
+        lot_number=lot_number,
+        site_name=site_name,
+        current_quantity=current_quantity,
+        last_updated_date=date.today(),
+    )
+    session.add(inventory)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+    return inventory
+
+
+def read_inventory(
+    session: Session,
+    inventory_id: int | None = None,
+    lot_number: str | None = None,
+    site_name: str | None = None,
+) -> Inventory | None:
+    """
+    Read an inventory record from the database.
+
+    Args:
+        session: Database session
+        inventory_id: Unique identifier for the inventory record
+        lot_number: Filter by lot number
+        site_name: Filter by site name
+
+    Returns:
+        The inventory object if found, None otherwise
+
+    Note:
+        Either inventory_id or both lot_number and site_name must be provided.
+    """
+    if inventory_id is not None:
+        return session.query(Inventory).filter_by(inventory_id=inventory_id).first()
+    elif lot_number is not None and site_name is not None:
+        return (
+            session.query(Inventory)
+            .filter_by(lot_number=lot_number, site_name=site_name)
+            .first()
+        )
+    return None
+
+
+def read_inventories(
+    session: Session, lot_number: str | None = None, site_name: str | None = None
+) -> list[Inventory]:
+    """
+    Read inventory records from the database with optional filtering.
+
+    Args:
+        session: Database session
+        lot_number: Filter inventories by lot number
+        site_name: Filter inventories by site name
+
+    Returns:
+        A list of inventory objects matching the criteria
+    """
+    query = session.query(Inventory)
+
+    # Apply filters if provided
+    if lot_number is not None:
+        query = query.filter(Inventory.lot_number == lot_number)
+
+    if site_name is not None:
+        query = query.filter(Inventory.site_name == site_name)
+
+    return query.all()
+
+
+def update_inventory_quantity(
+    session: Session, inventory_id: int, quantity_change: int
+) -> Inventory | None:
+    """
+    Update the quantity of an inventory record by adding the quantity change.
+
+    Args:
+        session: Database session
+        inventory_id: Unique identifier for the inventory record
+        quantity_change: Change in quantity (positive for increase, negative for decrease)
+
+    Returns:
+        The updated inventory object if found, None otherwise
+
+    Raises:
+        ValueError: If the update would result in a negative quantity
+        IntegrityError: If the update violates database constraints
+    """
+    inventory = read_inventory(session, inventory_id=inventory_id)
+    if inventory is None:
+        return None
+
+    new_quantity = inventory.current_quantity + quantity_change
+    if new_quantity < 0:
+        raise ValueError("Inventory quantity cannot be negative")
+
+    inventory.current_quantity = new_quantity
+    inventory.last_updated_date = date.today()
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return inventory
+
+
+def record_stock_arrival(session: Session, shipment_id: int) -> Inventory | None:
+    """
+    Update inventory when a shipment arrives at its destination.
+
+    Args:
+        session: Database session
+        shipment_id: The ID of the shipment that has arrived
+
+    Returns:
+        The updated inventory record if the shipment exists, None otherwise
+
+    Raises:
+        ValueError: If trying to record arrival for a shipment with no quantity
+        IntegrityError: If there are database constraint violations
+
+    Note:
+        This function will create a new inventory record if one doesn't exist
+        for the lot and site combination.
+    """
+    shipment = read_shipment(session, shipment_id)
+    if shipment is None:
+        return None
+
+    if shipment.quantity_shipped <= 0:
+        raise ValueError("Cannot record arrival for a shipment with no quantity")
+
+    # Check if inventory record exists for this lot and site
+    inventory = read_inventory(
+        session, lot_number=shipment.lot_number, site_name=shipment.site_name
+    )
+
+    try:
+        if inventory is None:
+            # Create a new inventory record
+            inventory = create_inventory(
+                session,
+                lot_number=shipment.lot_number,
+                site_name=shipment.site_name,
+                current_quantity=shipment.quantity_shipped,
+            )
+        else:
+            # Update existing inventory
+            inventory.current_quantity += shipment.quantity_shipped
+            inventory.last_updated_date = date.today()
+            session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return inventory
+
+
+def record_stock_usage(
+    session: Session, lot_number: str, site_name: str, quantity_used: int
+) -> Inventory | None:
+    """
+    Update inventory when stock is used at a site.
+
+    Args:
+        session: Database session
+        lot_number: The lot number of the used stock
+        site_name: The site where the stock was used
+        quantity_used: The amount of stock used (must be positive)
+
+    Returns:
+        The updated inventory record if it exists, None otherwise
+
+    Raises:
+        ValueError: If quantity_used is not positive or would result in negative inventory
+        IntegrityError: If there are database constraint violations
+    """
+    if quantity_used <= 0:
+        raise ValueError("Quantity used must be positive")
+
+    inventory = read_inventory(session, lot_number=lot_number, site_name=site_name)
+    if inventory is None:
+        return None
+
+    if inventory.current_quantity < quantity_used:
+        raise ValueError("Cannot use more stock than is available in inventory")
+
+    inventory.current_quantity -= quantity_used
+    inventory.last_updated_date = date.today()
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return inventory
