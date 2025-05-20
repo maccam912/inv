@@ -1,16 +1,27 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Header
+from textual.binding import Binding
+
+from inv.tui.dashboard import Dashboard
 
 
 class InventoryApp(App):
     """A Textual application to manage inventory."""
 
-    BINDINGS = [("d", "toggle_dark", "Toggle dark mode")]
+    TITLE = "Inventory Management"
+    CSS_PATH = None
+    
+    BINDINGS = [
+        Binding("d", "toggle_dark", "Toggle dark mode", show=True),
+        Binding("q", "quit", "Quit", show=True),
+    ]
+    
     dark: bool = False
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
+        yield Dashboard(id="dashboard")
         yield Footer()
 
     def action_toggle_dark(self) -> None:
