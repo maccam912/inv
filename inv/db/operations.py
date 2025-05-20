@@ -786,3 +786,67 @@ def predict_runout_date(
     runout_date = date.today() + timedelta(days=days_until_runout)
 
     return runout_date
+
+
+def predict_leftover_quantity(
+    session: Session, lot_number: str, site_name: str
+) -> int | None:
+    """
+    Predict how much of a lot will be leftover or short by its expiration date.
+
+    Args:
+        session: Database session
+        lot_number: The lot number to check
+        site_name: The site name to check
+
+    Returns:
+        The predicted leftover quantity (positive means leftover, negative means shortage)
+        or None if it can't be calculated (e.g., if there's no inventory, no usage history,
+        or zero usage rate)
+
+    Note:
+        This function uses the current inventory level, historical usage rate,
+        and lot expiration date to predict the leftover quantity. A positive value
+        indicates inventory will remain at expiration, while a negative value
+        indicates a shortage before expiration (run out before expiry).
+    """
+    # Check if inventory exists and get current quantity
+    inventory = read_inventory(session, lot_number=lot_number, site_name=site_name)
+    if inventory is None:
+        return None
+
+    current_quantity = inventory.current_quantity
+
+    # If no inventory, nothing will be leftover
+    if current_quantity <= 0:
+        return 0
+
+    # Get the lot to check its expiration date
+    lot = read_lot(session, lot_number=lot_number)
+    if lot is None:
+        return None
+
+    # Get expiration date
+    expiration_date = lot.expiration_date
+
+    # If already expired, return current quantity (it's all leftover)
+    if expiration_date <= date.today():
+        return current_quantity
+
+    # Calculate usage rate
+    rate_info = calculate_usage_rate(
+        session, lot_number=lot_number, site_name=site_name
+    )
+
+    # Handle cases where usage rate can't be calculated or is zero
+    if rate_info is None or rate_info[0] <= 0:
+        return current_quantity
+
+    usage_rate = rate_info[0]
+
+    # Calculate days until expiration and expected usage
+    days_until_expiration = (expiration_date - date.today()).days
+    expected_usage = int(days_until_expiration * usage_rate)
+
+    # Calculate leftover quantity (can be negative if expected to run short)
+    return current_quantity - expected_usage
