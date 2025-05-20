@@ -660,3 +660,74 @@ def record_stock_usage(
         raise
 
     return inventory
+
+
+def calculate_usage_rate(
+    session: Session, lot_number: str, site_name: str
+) -> tuple[float, int, date] | None:
+    """
+    Calculate the rate at which a site is consuming a particular lot.
+
+    Args:
+        session: Database session
+        lot_number: The lot number to check
+        site_name: The site name to check
+
+    Returns:
+        A tuple containing:
+            - The usage rate in units per day (float)
+            - The total quantity used (int)
+            - The date of the first inventory record (date)
+        Returns None if there is insufficient data to calculate a rate
+
+    Note:
+        The usage rate is calculated based on the change in inventory
+        from the earliest recorded inventory to the current level.
+        If there is no usage history or only one inventory record,
+        it will return None as there is not enough data to calculate a rate.
+    """
+    # Check if inventory exists for this lot and site
+    inventory = read_inventory(session, lot_number=lot_number, site_name=site_name)
+    if inventory is None:
+        return None
+
+    # Get the shipments ordered by date to identify initial quantity
+    shipments = (
+        session.query(Shipment)
+        .filter_by(lot_number=lot_number, site_name=site_name)
+        .order_by(Shipment.shipment_date)
+        .all()
+    )
+
+    if not shipments:
+        # No shipments, so we can't calculate a usage rate
+        return None
+
+    # Get the first shipment and its date
+    first_shipment = shipments[0]
+    first_date = first_shipment.shipment_date
+
+    # Calculate total shipped quantity (from all shipments)
+    total_shipped = sum(shipment.quantity_shipped for shipment in shipments)
+
+    # Current inventory level
+    current_quantity = inventory.current_quantity
+
+    # Calculate total used
+    total_used = total_shipped - current_quantity
+
+    # If no usage, return zero rate
+    if total_used <= 0:
+        return 0.0, 0, first_date
+
+    # Calculate days elapsed since first shipment
+    days_elapsed = (date.today() - first_date).days
+
+    # Avoid division by zero
+    if days_elapsed <= 0:
+        return None
+
+    # Calculate usage rate (units per day)
+    usage_rate = total_used / days_elapsed
+
+    return usage_rate, total_used, first_date
