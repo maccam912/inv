@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 """Operations for managing lots and sites in the database."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -731,3 +731,58 @@ def calculate_usage_rate(
     usage_rate = total_used / days_elapsed
 
     return usage_rate, total_used, first_date
+
+
+def predict_runout_date(
+    session: Session, lot_number: str, site_name: str
+) -> date | None:
+    """
+    Predict the date when a lot will run out at a specific site based on usage rate.
+
+    Args:
+        session: Database session
+        lot_number: The lot number to check
+        site_name: The site name to check
+
+    Returns:
+        The predicted run-out date or None if it can't be calculated
+        (e.g., if there's no inventory, no usage history, or zero usage rate)
+
+    Note:
+        This function uses the current inventory level and historical usage rate
+        to predict when the inventory will be depleted. If the usage rate is
+        zero or can't be calculated, it returns None.
+    """
+    # Check if inventory exists for this lot and site
+    inventory = read_inventory(session, lot_number=lot_number, site_name=site_name)
+    if inventory is None:
+        return None
+
+    # Get current inventory level
+    current_quantity = inventory.current_quantity
+
+    # If no inventory, it's already run out
+    if current_quantity <= 0:
+        return date.today()
+
+    # Calculate usage rate
+    rate_info = calculate_usage_rate(
+        session, lot_number=lot_number, site_name=site_name
+    )
+    if rate_info is None:
+        # Can't calculate usage rate
+        return None
+
+    usage_rate, _, _ = rate_info
+
+    # If no usage, inventory won't run out
+    if usage_rate <= 0:
+        return None
+
+    # Calculate days until run-out
+    days_until_runout = int(current_quantity / usage_rate)
+
+    # Calculate run-out date
+    runout_date = date.today() + timedelta(days=days_until_runout)
+
+    return runout_date
