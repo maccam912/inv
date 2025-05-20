@@ -4,6 +4,6 @@
 import sys
 
 if __name__ == "__main__":
-    from .cli import inv
+    from . import inv
 
     sys.exit(inv())

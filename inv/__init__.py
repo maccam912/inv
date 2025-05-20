@@ -14,10 +14,9 @@ from inv.__about__ import __version__
 @click.pass_context
 def inv(ctx: click.Context):
     if ctx.invoked_subcommand is None:
-        # This is where the TUI app will be launched
-        # from .tui.app import InventoryApp
-        # app = InventoryApp()
-        # app.run()
-        click.echo("Launching TUI... (not implemented yet)")
+        # Launch the TUI app
+        from .tui.app import InventoryApp
+        app = InventoryApp()
+        app.run()
     else:
         pass  # Handle subcommands if any are added later
