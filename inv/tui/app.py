@@ -10,12 +10,12 @@ class InventoryApp(App):
 
     TITLE = "Inventory Management"
     CSS_PATH = None
-    
+
     BINDINGS = [
         Binding("d", "toggle_dark", "Toggle dark mode", show=True),
         Binding("q", "quit", "Quit", show=True),
     ]
-    
+
     dark: bool = False
 
     def compose(self) -> ComposeResult:

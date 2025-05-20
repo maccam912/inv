@@ -161,7 +161,9 @@ def delete_lot(session: Session, lot_number: str) -> bool:
     return True
 
 
-def create_site(session: Session, site_name: str, contact_info: str | None = None) -> Site:
+def create_site(
+    session: Session, site_name: str, contact_info: str | None = None
+) -> Site:
     """
     Create a new site in the database.
 

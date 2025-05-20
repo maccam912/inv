@@ -16,6 +16,7 @@ def inv(ctx: click.Context):
     if ctx.invoked_subcommand is None:
         # Launch the TUI app
         from .tui.app import InventoryApp
+
         app = InventoryApp()
         app.run()
     else:
