@@ -3,12 +3,10 @@
 # SPDX-License-Identifier: MIT
 """Operations for managing lots and sites in the database."""
 
-from datetime import date, timedelta
-from typing import Tuple
+from datetime import date
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from inv.db.models import Inventory, Lot, Shipment, Site
 
@@ -666,7 +664,7 @@ def record_stock_usage(
 
 def calculate_usage_rate(
     session: Session, lot_number: str, site_name: str
-) -> Tuple[float, int, date] | None:
+) -> tuple[float, int, date] | None:
     """
     Calculate the rate at which a site is consuming a particular lot.
 

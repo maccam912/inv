@@ -343,7 +343,7 @@ def test_calculate_usage_rate(test_db, test_lot_and_site):
     )
 
     # Record arrival
-    inventory = record_stock_arrival(test_db, shipment_id=shipment.shipment_id)
+    record_stock_arrival(test_db, shipment_id=shipment.shipment_id)
 
     # Record some usage (half of the quantity)
     usage_amount = TEST_QUANTITY // 2
@@ -456,10 +456,13 @@ def test_calculate_usage_rate_multiple_shipments(test_db, test_lot_and_site):
     # Total used: 30 + 40 = 70
     # Days elapsed: 60
     # Expected rate: 70 / 60 = 1.16667
-    expected_rate = 70 / 60
+    # Calculate expected values
+    EXPECTED_TOTAL_USED = 30 + 40  # Sum of used quantities from lines 417 and 436
+    DAYS_ELAPSED = 60
+    expected_rate = EXPECTED_TOTAL_USED / DAYS_ELAPSED
     assert usage_rate == pytest.approx(expected_rate)
-    assert total_used == 70
-    assert first_date == first_date
+    assert total_used == EXPECTED_TOTAL_USED
+    assert first_date == shipment1.shipment_date
 
 
 def test_calculate_usage_rate_same_day(test_db, test_lot_and_site):
