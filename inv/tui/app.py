@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from sqlalchemy.orm import Session, sessionmaker
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import Footer, Header
+from textual.widgets import Footer, Header, TabbedContent, TabPane
 
 from inv.db.models import init_db
 from inv.tui.dashboard import Dashboard
@@ -16,7 +16,7 @@ class InventoryApp(App):
     """A Textual application to manage inventory."""
 
     TITLE = "Inventory Management"
-    CSS_PATH = None
+    CSS_PATH = "app.css"
 
     BINDINGS = [
         Binding("d", "toggle_dark", "Toggle dark mode", show=True),
@@ -53,7 +53,14 @@ class InventoryApp(App):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        yield Dashboard(id="dashboard")
+        # Create a tabbed interface with different screens
+        with TabbedContent(id="screen_tabs"):
+            with TabPane("Dashboard", id="dashboard_tab"):
+                yield Dashboard(id="dashboard")
+            with TabPane("Lot Management", id="lot_tab"):
+                yield LotScreen(self.get_session, id="lot_screen")
+            with TabPane("Site Management", id="site_tab"):
+                yield SiteScreen(self.get_session, id="site_screen")
         yield Footer()
 
     def action_toggle_dark(self) -> None:
@@ -62,32 +69,18 @@ class InventoryApp(App):
 
     def action_show_lots(self) -> None:
         """An action to show the lots screen."""
-        self.query_one("#dashboard").remove()
-        lot_screen = LotScreen(self.get_session, id="lot_screen")
-        self.mount(lot_screen)
+        tabs = self.query_one("#screen_tabs", TabbedContent)
+        tabs.active = "lot_tab"
 
     def action_show_sites(self) -> None:
         """An action to show the sites screen."""
-        self.query_one("#dashboard").remove()
-        site_screen = SiteScreen(self.get_session, id="site_screen")
-        self.mount(site_screen)
+        tabs = self.query_one("#screen_tabs", TabbedContent)
+        tabs.active = "site_tab"
 
     def action_back_to_dashboard(self) -> None:
         """An action to return to the dashboard."""
-        # Only act if we're not already on the dashboard
-        if self.query("Dashboard") == []:
-            # Try to find and remove the lot screen if it exists
-            lot_screen = self.query("LotScreen")
-            if lot_screen:
-                lot_screen[0].remove()
-
-            # Try to find and remove the site screen if it exists
-            site_screen = self.query("SiteScreen")
-            if site_screen:
-                site_screen[0].remove()
-
-            # Mount the dashboard
-            self.mount(Dashboard(id="dashboard"))
+        tabs = self.query_one("#screen_tabs", TabbedContent)
+        tabs.active = "dashboard_tab"
 
 
 if __name__ == "__main__":
