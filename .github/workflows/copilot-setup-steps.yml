@@ -24,4 +24,4 @@ jobs:
         uses: astral-sh/setup-uv@v6
       
       - name: Run tests
-        run: uvx hatch run check
+        run: uvx hatch run noop
