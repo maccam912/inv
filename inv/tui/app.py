@@ -9,6 +9,7 @@ from textual.widgets import Footer, Header, TabbedContent, TabPane
 from inv.db.models import init_db
 from inv.tui.dashboard import Dashboard
 from inv.tui.lot_screen import LotScreen
+from inv.tui.shipment_screen import ShipmentScreen
 from inv.tui.site_screen import SiteScreen
 
 
@@ -22,6 +23,7 @@ class InventoryApp(App):
         Binding("d", "toggle_dark", "Toggle dark mode", show=True),
         Binding("l", "show_lots", "Show Lots", show=True),
         Binding("s", "show_sites", "Show Sites", show=True),
+        Binding("h", "show_shipments", "Show Shipments", show=True),
         Binding("b", "back_to_dashboard", "Back to Dashboard", show=True),
         Binding("q", "quit", "Quit", show=True),
     ]
@@ -61,6 +63,8 @@ class InventoryApp(App):
                 yield LotScreen(self.get_session, id="lot_screen")
             with TabPane("Site Management", id="site_tab"):
                 yield SiteScreen(self.get_session, id="site_screen")
+            with TabPane("Shipment Management", id="shipment_tab"):
+                yield ShipmentScreen(self.get_session, id="shipment_screen")
         yield Footer()
 
     def action_toggle_dark(self) -> None:
@@ -76,6 +80,11 @@ class InventoryApp(App):
         """An action to show the sites screen."""
         tabs = self.query_one("#screen_tabs", TabbedContent)
         tabs.active = "site_tab"
+
+    def action_show_shipments(self) -> None:
+        """An action to show the shipments screen."""
+        tabs = self.query_one("#screen_tabs", TabbedContent)
+        tabs.active = "shipment_tab"
 
     def action_back_to_dashboard(self) -> None:
         """An action to return to the dashboard."""
