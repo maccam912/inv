@@ -8,7 +8,7 @@ from datetime import date
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from inv.db.models import Lot, Site
+from inv.db.models import Lot, Shipment, Site
 
 
 def create_lot(
@@ -269,6 +269,168 @@ def delete_site(session: Session, site_name: str) -> bool:
 
     try:
         session.delete(site)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return True
+
+
+def create_shipment(  # noqa: PLR0913
+    session: Session,
+    lot_number: str,
+    site_name: str,
+    shipment_date: date,
+    quantity_shipped: int,
+    anticipated_arrival_date: date | None = None,
+) -> Shipment:
+    """
+    Create a new shipment in the database.
+
+    Args:
+        session: Database session
+        lot_number: Reference to the lot being shipped
+        site_name: Reference to the destination site
+        shipment_date: Date when the shipment was sent
+        quantity_shipped: Quantity of items in the shipment
+        anticipated_arrival_date: Expected date of arrival (optional)
+
+    Returns:
+        The created shipment object
+
+    Raises:
+        IntegrityError: If the lot_number or site_name doesn't exist in the database
+    """
+    shipment = Shipment(
+        lot_number=lot_number,
+        site_name=site_name,
+        shipment_date=shipment_date,
+        quantity_shipped=quantity_shipped,
+        anticipated_arrival_date=anticipated_arrival_date,
+    )
+    session.add(shipment)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+    return shipment
+
+
+def read_shipment(session: Session, shipment_id: int) -> Shipment | None:
+    """
+    Read a shipment from the database by its shipment ID.
+
+    Args:
+        session: Database session
+        shipment_id: Unique identifier for the shipment
+
+    Returns:
+        The shipment object if found, None otherwise
+    """
+    return session.query(Shipment).filter_by(shipment_id=shipment_id).first()
+
+
+def read_shipments(
+    session: Session,
+    lot_number: str | None = None,
+    site_name: str | None = None,
+) -> list[Shipment]:
+    """
+    Read shipments from the database with optional filtering.
+
+    Args:
+        session: Database session
+        lot_number: Filter shipments by lot number
+        site_name: Filter shipments by site name
+
+    Returns:
+        A list of shipment objects matching the criteria
+    """
+    query = session.query(Shipment)
+
+    # Apply filters if provided
+    if lot_number is not None:
+        query = query.filter(Shipment.lot_number == lot_number)
+
+    if site_name is not None:
+        query = query.filter(Shipment.site_name == site_name)
+
+    return query.all()
+
+
+def update_shipment(  # noqa: PLR0913
+    session: Session,
+    shipment_id: int,
+    lot_number: str | None = None,
+    site_name: str | None = None,
+    shipment_date: date | None = None,
+    quantity_shipped: int | None = None,
+    anticipated_arrival_date: date | None = None,
+) -> Shipment | None:
+    """
+    Update a shipment in the database.
+
+    Args:
+        session: Database session
+        shipment_id: Unique identifier for the shipment
+        lot_number: New lot number (if None, not updated)
+        site_name: New site name (if None, not updated)
+        shipment_date: New shipment date (if None, not updated)
+        quantity_shipped: New quantity shipped (if None, not updated)
+        anticipated_arrival_date: New anticipated arrival date (if None, not updated)
+
+    Returns:
+        The updated shipment object if found, None otherwise
+
+    Raises:
+        IntegrityError: If the update violates database constraints
+    """
+    shipment = read_shipment(session, shipment_id)
+    if shipment is None:
+        return None
+
+    if lot_number is not None:
+        shipment.lot_number = lot_number
+    if site_name is not None:
+        shipment.site_name = site_name
+    if shipment_date is not None:
+        shipment.shipment_date = shipment_date
+    if quantity_shipped is not None:
+        shipment.quantity_shipped = quantity_shipped
+    if anticipated_arrival_date is not None:
+        shipment.anticipated_arrival_date = anticipated_arrival_date
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise
+
+    return shipment
+
+
+def delete_shipment(session: Session, shipment_id: int) -> bool:
+    """
+    Delete a shipment from the database.
+
+    Args:
+        session: Database session
+        shipment_id: Unique identifier for the shipment to delete
+
+    Returns:
+        True if the shipment was deleted, False if not found
+
+    Raises:
+        IntegrityError: If the deletion would violate database constraints
+    """
+    shipment = read_shipment(session, shipment_id)
+    if shipment is None:
+        return False
+
+    try:
+        session.delete(shipment)
         session.commit()
     except IntegrityError:
         session.rollback()
