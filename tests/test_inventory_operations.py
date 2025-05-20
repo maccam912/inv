@@ -7,14 +7,14 @@ from datetime import date, timedelta
 
 import pytest
 
-from inv.db.models import Inventory, Lot, Shipment, Site, init_db
+from inv.db.models import Inventory, init_db
 from inv.db.operations import (
     create_inventory,
     create_lot,
     create_shipment,
     create_site,
-    read_inventory,
     read_inventories,
+    read_inventory,
     record_stock_arrival,
     record_stock_usage,
     update_inventory_quantity,
@@ -67,7 +67,9 @@ def test_create_inventory(test_db, test_lot_and_site):
     assert inventory.last_updated_date == date.today()
 
     # Verify in database
-    result = test_db.query(Inventory).filter_by(inventory_id=inventory.inventory_id).first()
+    result = (
+        test_db.query(Inventory).filter_by(inventory_id=inventory.inventory_id).first()
+    )
     assert result is not None
     assert result.lot_number == lot_number
     assert result.site_name == site_name
@@ -108,9 +110,7 @@ def test_read_inventory_by_lot_and_site(test_db, test_lot_and_site):
     )
 
     # Read by lot number and site name
-    result = read_inventory(
-        test_db, lot_number=lot_number, site_name=site_name
-    )
+    result = read_inventory(test_db, lot_number=lot_number, site_name=site_name)
     assert result is not None
     assert result.lot_number == lot_number
     assert result.site_name == site_name
@@ -146,7 +146,8 @@ def test_read_inventories(test_db, test_lot_and_site):
 
     # Read all inventories
     results = read_inventories(test_db)
-    assert len(results) == 2
+    EXPECTED_INVENTORY_COUNT = 2
+    assert len(results) == EXPECTED_INVENTORY_COUNT
 
     # Read by lot number
     results = read_inventories(test_db, lot_number=lot_number)
@@ -201,7 +202,9 @@ def test_update_inventory_quantity_invalid(test_db, test_lot_and_site):
     # Try to update with a quantity change that would make it negative
     with pytest.raises(ValueError):
         update_inventory_quantity(
-            test_db, inventory_id=inventory.inventory_id, quantity_change=-(TEST_QUANTITY + 1)
+            test_db,
+            inventory_id=inventory.inventory_id,
+            quantity_change=-(TEST_QUANTITY + 1),
         )
 
     # Verify quantity wasn't changed
@@ -309,9 +312,7 @@ def test_record_stock_usage_invalid_quantity(test_db, test_lot_and_site):
         )
 
     # Verify quantity wasn't changed
-    inventory = read_inventory(
-        test_db, lot_number=lot_number, site_name=site_name
-    )
+    inventory = read_inventory(test_db, lot_number=lot_number, site_name=site_name)
     assert inventory.current_quantity == TEST_QUANTITY
 
 

@@ -474,7 +474,10 @@ def create_inventory(
 
 
 def read_inventory(
-    session: Session, inventory_id: int = None, lot_number: str = None, site_name: str = None
+    session: Session,
+    inventory_id: int | None = None,
+    lot_number: str | None = None,
+    site_name: str | None = None,
 ) -> Inventory | None:
     """
     Read an inventory record from the database.
@@ -503,7 +506,7 @@ def read_inventory(
 
 
 def read_inventories(
-    session: Session, lot_number: str = None, site_name: str = None
+    session: Session, lot_number: str | None = None, site_name: str | None = None
 ) -> list[Inventory]:
     """
     Read inventory records from the database with optional filtering.
