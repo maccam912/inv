@@ -32,6 +32,11 @@ def test_navigation_actions():
     mock_query.assert_called_with("#screen_tabs", TabbedContent)
     assert mock_tabbed_content.active == "site_tab"
 
+    # Test show_shipments action
+    app.action_show_shipments()
+    mock_query.assert_called_with("#screen_tabs", TabbedContent)
+    assert mock_tabbed_content.active == "shipment_tab"
+
     # Test back_to_dashboard action
     app.action_back_to_dashboard()
     mock_query.assert_called_with("#screen_tabs", TabbedContent)

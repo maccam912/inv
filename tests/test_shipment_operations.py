@@ -165,12 +165,27 @@ def test_read_shipment_not_found(test_db):
 def test_read_shipments(test_db, test_lot_and_site):
     """Test reading all shipment records."""
     # Create several shipments
-    create_shipment(test_db, lot_number="LOT456", site_name="Store B",
-                    shipment_date=date.today(), quantity_shipped=10)
-    create_shipment(test_db, lot_number="LOT456", site_name="Store B",
-                    shipment_date=date.today() + timedelta(days=1), quantity_shipped=15)
-    create_shipment(test_db, lot_number="LOT456", site_name="Store B",
-                    shipment_date=date.today() + timedelta(days=2), quantity_shipped=20)
+    create_shipment(
+        test_db,
+        lot_number="LOT456",
+        site_name="Store B",
+        shipment_date=date.today(),
+        quantity_shipped=10,
+    )
+    create_shipment(
+        test_db,
+        lot_number="LOT456",
+        site_name="Store B",
+        shipment_date=date.today() + timedelta(days=1),
+        quantity_shipped=15,
+    )
+    create_shipment(
+        test_db,
+        lot_number="LOT456",
+        site_name="Store B",
+        shipment_date=date.today() + timedelta(days=2),
+        quantity_shipped=20,
+    )
 
     # Read all shipments
     shipments = read_shipments(test_db)
@@ -180,17 +195,42 @@ def test_read_shipments(test_db, test_lot_and_site):
 def test_read_shipments_by_lot(test_db):
     """Test reading shipments filtered by lot number."""
     # Create lots and site first
-    create_lot(test_db, lot_number="LOT-A", expiration_date=date.today() + timedelta(days=180), initial_quantity=100)
-    create_lot(test_db, lot_number="LOT-B", expiration_date=date.today() + timedelta(days=180), initial_quantity=100)
+    create_lot(
+        test_db,
+        lot_number="LOT-A",
+        expiration_date=date.today() + timedelta(days=180),
+        initial_quantity=100,
+    )
+    create_lot(
+        test_db,
+        lot_number="LOT-B",
+        expiration_date=date.today() + timedelta(days=180),
+        initial_quantity=100,
+    )
     create_site(test_db, site_name="Site-X", contact_info="Contact X")
 
     # Create shipments for different lots
-    create_shipment(test_db, lot_number="LOT-A", site_name="Site-X",
-                    shipment_date=date.today(), quantity_shipped=10)
-    create_shipment(test_db, lot_number="LOT-B", site_name="Site-X",
-                    shipment_date=date.today(), quantity_shipped=20)
-    create_shipment(test_db, lot_number="LOT-B", site_name="Site-X",
-                    shipment_date=date.today() + timedelta(days=1), quantity_shipped=30)
+    create_shipment(
+        test_db,
+        lot_number="LOT-A",
+        site_name="Site-X",
+        shipment_date=date.today(),
+        quantity_shipped=10,
+    )
+    create_shipment(
+        test_db,
+        lot_number="LOT-B",
+        site_name="Site-X",
+        shipment_date=date.today(),
+        quantity_shipped=20,
+    )
+    create_shipment(
+        test_db,
+        lot_number="LOT-B",
+        site_name="Site-X",
+        shipment_date=date.today() + timedelta(days=1),
+        quantity_shipped=30,
+    )
 
     # Read shipments by lot
     lot_a_shipments = read_shipments(test_db, lot_number="LOT-A")
@@ -205,17 +245,37 @@ def test_read_shipments_by_lot(test_db):
 def test_read_shipments_by_site(test_db):
     """Test reading shipments filtered by site name."""
     # Create lot and sites first
-    create_lot(test_db, lot_number="LOT-C", expiration_date=date.today() + timedelta(days=180), initial_quantity=100)
+    create_lot(
+        test_db,
+        lot_number="LOT-C",
+        expiration_date=date.today() + timedelta(days=180),
+        initial_quantity=100,
+    )
     create_site(test_db, site_name="Site-Y", contact_info="Contact Y")
     create_site(test_db, site_name="Site-Z", contact_info="Contact Z")
 
     # Create shipments for different sites
-    create_shipment(test_db, lot_number="LOT-C", site_name="Site-Y",
-                    shipment_date=date.today(), quantity_shipped=10)
-    create_shipment(test_db, lot_number="LOT-C", site_name="Site-Z",
-                    shipment_date=date.today(), quantity_shipped=20)
-    create_shipment(test_db, lot_number="LOT-C", site_name="Site-Z",
-                    shipment_date=date.today() + timedelta(days=1), quantity_shipped=30)
+    create_shipment(
+        test_db,
+        lot_number="LOT-C",
+        site_name="Site-Y",
+        shipment_date=date.today(),
+        quantity_shipped=10,
+    )
+    create_shipment(
+        test_db,
+        lot_number="LOT-C",
+        site_name="Site-Z",
+        shipment_date=date.today(),
+        quantity_shipped=20,
+    )
+    create_shipment(
+        test_db,
+        lot_number="LOT-C",
+        site_name="Site-Z",
+        shipment_date=date.today() + timedelta(days=1),
+        quantity_shipped=30,
+    )
 
     # Read shipments by site
     site_y_shipments = read_shipments(test_db, site_name="Site-Y")
@@ -230,7 +290,12 @@ def test_read_shipments_by_site(test_db):
 def test_update_shipment(test_db, test_lot_and_site):
     """Test updating a shipment record."""
     # Create another lot and site for testing updates
-    create_lot(test_db, lot_number="LOT789", expiration_date=date.today() + timedelta(days=180), initial_quantity=100)
+    create_lot(
+        test_db,
+        lot_number="LOT789",
+        expiration_date=date.today() + timedelta(days=180),
+        initial_quantity=100,
+    )
     create_site(test_db, site_name="Store C", contact_info="New Contact")
 
     # Create a shipment first
