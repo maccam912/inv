@@ -108,7 +108,7 @@ def test_read_sites(test_db):
 
     # Read all sites
     sites = read_sites(test_db)
-    assert len(sites) == 3
+    assert len(sites) == 3  # noqa: PLR2004
     site_names = [site.site_name for site in sites]
     assert "Warehouse E" in site_names
     assert "Warehouse F" in site_names
