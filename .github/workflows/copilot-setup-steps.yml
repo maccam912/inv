@@ -23,5 +23,11 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v6
       
-      - name: Run tests
+      - name: Install hatch
+        run: uv tool install hatch
+      
+      - name: Run tests with UVX
         run: uvx hatch run noop
+
+      - name: Run tests
+        run: hatch run noop
