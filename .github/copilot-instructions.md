@@ -10,3 +10,5 @@ Always write testable code, and add unit tests. Also document your code with doc
 Use types where possible.
 
 All code checks must pass before you submit a PR for review. Before asking for reviews, run `uvx hatch run check` and fix any errors you have. Any PR which does not pass these checks will be rejected, so do yourself a favor and run the checks before you claim to be finished.
+
+*** IMPORTANT: ALWAYS run `uvx hatch run check` locally to verify that all checks pass before submitting your work. Never skip this step! A PR with failing checks will be automatically rejected. ***
