@@ -9,6 +9,7 @@ from textual.widgets import Footer, Header
 from inv.db.models import init_db
 from inv.tui.dashboard import Dashboard
 from inv.tui.lot_screen import LotScreen
+from inv.tui.site_screen import SiteScreen
 
 
 class InventoryApp(App):
@@ -20,6 +21,7 @@ class InventoryApp(App):
     BINDINGS = [
         Binding("d", "toggle_dark", "Toggle dark mode", show=True),
         Binding("l", "show_lots", "Show Lots", show=True),
+        Binding("s", "show_sites", "Show Sites", show=True),
         Binding("b", "back_to_dashboard", "Back to Dashboard", show=True),
         Binding("q", "quit", "Quit", show=True),
     ]
@@ -64,6 +66,12 @@ class InventoryApp(App):
         lot_screen = LotScreen(self.get_session, id="lot_screen")
         self.mount(lot_screen)
 
+    def action_show_sites(self) -> None:
+        """An action to show the sites screen."""
+        self.query_one("#dashboard").remove()
+        site_screen = SiteScreen(self.get_session, id="site_screen")
+        self.mount(site_screen)
+
     def action_back_to_dashboard(self) -> None:
         """An action to return to the dashboard."""
         # Only act if we're not already on the dashboard
@@ -72,6 +80,11 @@ class InventoryApp(App):
             lot_screen = self.query("LotScreen")
             if lot_screen:
                 lot_screen[0].remove()
+
+            # Try to find and remove the site screen if it exists
+            site_screen = self.query("SiteScreen")
+            if site_screen:
+                site_screen[0].remove()
 
             # Mount the dashboard
             self.mount(Dashboard(id="dashboard"))
