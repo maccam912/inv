@@ -61,7 +61,9 @@ class InventoryScreen(Container):
             inventories = read_inventories(session)
 
             # Sort inventories by site name, then by lot number
-            inventories.sort(key=lambda inventory: (inventory.site_name, inventory.lot_number))
+            inventories.sort(
+                key=lambda inventory: (inventory.site_name, inventory.lot_number)
+            )
 
             # Add rows for each inventory record
             for inventory in inventories:

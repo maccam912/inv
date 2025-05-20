@@ -57,7 +57,9 @@ def test_inventory_screen_refresh(mock_session_factory, mock_session, mock_inven
     """Test that the inventory screen refreshes correctly."""
     # Setup
     mock_session.query.return_value.all.return_value = mock_inventories
-    with patch("inv.tui.inventory_screen.read_inventories", return_value=mock_inventories):
+    with patch(
+        "inv.tui.inventory_screen.read_inventories", return_value=mock_inventories
+    ):
         # Create the screen
         screen = InventoryScreen(mock_session_factory)
 
@@ -71,7 +73,8 @@ def test_inventory_screen_refresh(mock_session_factory, mock_session, mock_inven
 
         # Assertions
         mock_table.clear.assert_called_once()
-        assert mock_table.add_row.call_count == 2
+        expected_row_count = len(mock_inventories)
+        assert mock_table.add_row.call_count == expected_row_count
 
         # Check the data in the rows
         mock_table.add_row.assert_any_call(
