@@ -88,13 +88,22 @@ class Dashboard(Container):
             Label("## Inventory Warnings", classes="warning_heading")
         )
 
-        # Expiring lots section
-        warnings_container.mount(
+        # Display various warning sections
+        self._display_expiring_lots(warnings_container, expiring_lots)
+        self._display_low_inventory(warnings_container, low_inventory)
+        self._display_slow_moving(warnings_container, slow_moving)
+        self._display_transfer_suggestions(warnings_container, transfer_suggestions)
+
+    def _display_expiring_lots(
+        self, container: VerticalScroll, expiring_lots: list[dict[str, Any]]
+    ) -> None:
+        """Display lots that are nearing expiration."""
+        container.mount(
             Label("### Lots Nearing Expiration", classes="warning_subheading")
         )
         if expiring_lots:
             for lot_info in expiring_lots:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"⚠️ Lot {lot_info['lot_number']} expires in {lot_info['days']} days "
                         f"({lot_info['date']})",
@@ -102,17 +111,16 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
-                Label("No lots expiring soon.", classes="no_warning")
-            )
+            container.mount(Label("No lots expiring soon.", classes="no_warning"))
 
-        # Low inventory section
-        warnings_container.mount(
-            Label("### Low Inventory", classes="warning_subheading")
-        )
+    def _display_low_inventory(
+        self, container: VerticalScroll, low_inventory: list[dict[str, Any]]
+    ) -> None:
+        """Display inventory items that are running low."""
+        container.mount(Label("### Low Inventory", classes="warning_subheading"))
         if low_inventory:
             for inv_info in low_inventory:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"⚠️ Lot {inv_info['lot_number']} at {inv_info['site_name']} "
                         f"will run out in {inv_info['days']} days ({inv_info['date']})",
@@ -120,17 +128,20 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
+            container.mount(
                 Label("No sites running low on inventory.", classes="no_warning")
             )
 
-        # Slow-moving inventory section
-        warnings_container.mount(
+    def _display_slow_moving(
+        self, container: VerticalScroll, slow_moving: list[dict[str, Any]]
+    ) -> None:
+        """Display slow-moving inventory items."""
+        container.mount(
             Label("### Slow-Moving Inventory", classes="warning_subheading")
         )
         if slow_moving:
             for inv_info in slow_moving:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"⚠️ Lot {inv_info['lot_number']} at {inv_info['site_name']} "
                         f"will have {inv_info['leftover']} units leftover at expiration "
@@ -139,17 +150,20 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
+            container.mount(
                 Label("No slow-moving inventory identified.", classes="no_warning")
             )
 
-        # Transfer suggestions section
-        warnings_container.mount(
+    def _display_transfer_suggestions(
+        self, container: VerticalScroll, transfer_suggestions: list[dict[str, Any]]
+    ) -> None:
+        """Display suggested inventory transfers."""
+        container.mount(
             Label("### Suggested Inventory Transfers", classes="warning_subheading")
         )
         if transfer_suggestions:
             for suggestion in transfer_suggestions:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"💡 Transfer {suggestion['quantity']} units of Lot {suggestion['lot_number']} "
                         f"from {suggestion['source_site']} to {suggestion['destination_site']} "
@@ -158,7 +172,7 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
+            container.mount(
                 Label("No inventory transfers suggested.", classes="no_warning")
             )
 
