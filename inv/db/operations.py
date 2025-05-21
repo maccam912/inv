@@ -1024,6 +1024,43 @@ def _create_transfer_suggestions(
     return suggestions
 
 
+def predict_annual_usage(
+    session: Session, lot_number: str, site_name: str
+) -> int | None:
+    """
+    Predict the total annual requirement for a product based on historical usage.
+
+    Args:
+        session: Database session
+        lot_number: The lot number to check
+        site_name: The site name to check
+
+    Returns:
+        The predicted annual usage in units or None if it can't be calculated
+        (e.g., if there's no inventory, no usage history, or zero usage rate)
+
+    Note:
+        This function uses historical usage rate to predict annual requirements.
+        If the usage rate is zero or can't be calculated, it returns None.
+    """
+    # Calculate usage rate
+    rate_info = calculate_usage_rate(
+        session, lot_number=lot_number, site_name=site_name
+    )
+
+    # If no rate information or zero usage rate, return None
+    if rate_info is None or rate_info[0] <= 0:
+        return None
+
+    # Extract the daily usage rate
+    daily_usage_rate, _, _ = rate_info
+
+    # Calculate annual usage (daily rate * 365 days)
+    annual_usage = int(daily_usage_rate * 365)
+
+    return annual_usage
+
+
 def suggest_inventory_transfers(session: Session) -> list[TransferSuggestion]:
     """
     Identify sites with surplus inventory of lots that are running low at other sites
