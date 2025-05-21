@@ -83,6 +83,7 @@ class InventoryScreen(Container):
     @on(Button.Pressed, "#record_usage")
     def handle_record_usage(self) -> None:
         """Handle the record usage button being pressed."""
+
         def handle_form_closed(result: bool) -> None:
             if result:
                 self.refresh_inventory()

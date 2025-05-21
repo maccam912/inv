@@ -116,6 +116,7 @@ class LotScreen(Container):
     @on(Button.Pressed, "#add_lot")
     def handle_add_lot(self) -> None:
         """Handle the add lot button being pressed."""
+
         def handle_form_closed(result: bool) -> None:
             if result:
                 self.refresh_lots()

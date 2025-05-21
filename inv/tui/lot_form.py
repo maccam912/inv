@@ -69,7 +69,7 @@ class LotForm(FormScreen):
                 yield from create_date_field(
                     "expiration_date",
                     "Expiration Date:",
-                    value=self.lot.expiration_date
+                    value=self.lot.expiration_date,
                 )
                 yield from create_number_field(
                     "initial_quantity",
@@ -106,6 +106,11 @@ class LotForm(FormScreen):
         # Validate lot number
         if not lot_number_input.value:
             self.show_message("Lot number is required")
+            return False
+
+        # Validate expiration date
+        if not expiration_date_picker.value:
+            self.show_message("Expiration date is required")
             return False
 
         # Validate initial quantity

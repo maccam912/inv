@@ -72,7 +72,11 @@ class InventoryUsageForm(FormScreen):
 
                 # Current quantity display (will be updated when inventory is selected)
                 yield Label("Current Quantity:", classes="field-label")
-                yield Static("Select an inventory item", id="current_quantity", classes="input-field")
+                yield Static(
+                    "Select an inventory item",
+                    id="current_quantity",
+                    classes="input-field",
+                )
 
                 # Quantity used input
                 yield from create_number_field(
@@ -97,7 +101,7 @@ class InventoryUsageForm(FormScreen):
                 inventories = read_inventories(
                     session,
                     lot_number=self.selected_inventory_id[0],
-                    site_name=self.selected_inventory_id[1]
+                    site_name=self.selected_inventory_id[1],
                 )
                 if inventories:
                     self.current_quantity = inventories[0].current_quantity

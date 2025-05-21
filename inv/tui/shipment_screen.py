@@ -115,6 +115,7 @@ class ShipmentScreen(Container):
     @on(Button.Pressed, "#add_shipment")
     def handle_add_shipment(self) -> None:
         """Handle the add shipment button being pressed."""
+
         def handle_form_closed(result: bool) -> None:
             if result:
                 self.refresh_shipments()
@@ -125,7 +126,9 @@ class ShipmentScreen(Container):
     @on(Button.Pressed, "#edit_shipment")
     def handle_edit_shipment(self) -> None:
         """Handle the edit shipment button being pressed."""
-        shipment_id = int(self.shipments_table.get_row_at(self.shipments_table.cursor_row)[0])
+        shipment_id = int(
+            self.shipments_table.get_row_at(self.shipments_table.cursor_row)[0]
+        )
 
         def handle_form_closed(result: bool) -> None:
             if result:
@@ -137,11 +140,15 @@ class ShipmentScreen(Container):
     @on(Button.Pressed, "#record_arrival")
     def handle_record_arrival(self) -> None:
         """Handle the record arrival button being pressed."""
-        shipment_id = int(self.shipments_table.get_row_at(self.shipments_table.cursor_row)[0])
+        shipment_id = int(
+            self.shipments_table.get_row_at(self.shipments_table.cursor_row)[0]
+        )
 
         with self.session_factory() as session:
             try:
                 record_stock_arrival(session, shipment_id=shipment_id)
-                self.app.notify("Shipment arrival recorded successfully", severity="information")
+                self.app.notify(
+                    "Shipment arrival recorded successfully", severity="information"
+                )
             except Exception as e:
                 self.app.notify(f"Error recording arrival: {str(e)}", severity="error")

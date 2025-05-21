@@ -94,6 +94,7 @@ class SiteScreen(Container):
     @on(Button.Pressed, "#add_site")
     def handle_add_site(self) -> None:
         """Handle the add site button being pressed."""
+
         def handle_form_closed(result: bool) -> None:
             if result:
                 self.refresh_sites()
