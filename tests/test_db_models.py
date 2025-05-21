@@ -5,6 +5,7 @@ from datetime import date, timedelta
 
 import pytest
 from sqlalchemy import create_engine
+from hypothesis import given, strategies as st
 
 from inv.db.models import Base, Inventory, Lot, Shipment, Site, init_db
 
@@ -135,3 +136,269 @@ def test_create_inventory(test_db):
     assert lot.inventory[0].inventory_id == result.inventory_id
     assert len(site.inventory) == 1
     assert site.inventory[0].inventory_id == result.inventory_id
+
+
+# Define a Hypothesis strategy for generating Lot data
+lots_strategy = st.builds(
+    Lot,
+    lot_number=st.text(min_size=1, max_size=50),
+    expiration_date=st.dates(
+        min_value=date.today() + timedelta(days=1),
+        max_value=date.today() + timedelta(days=365 * 5),
+    ),
+    initial_quantity=st.integers(min_value=0, max_value=10000),
+)
+
+# Define a Hypothesis strategy for generating Site data
+sites_strategy = st.builds(
+    Site,
+    site_name=st.text(min_size=1, max_size=100),
+    contact_info=st.text(min_size=0, max_size=200),
+)
+
+
+# Define a Hypothesis strategy for generating Shipment data
+@st.composite
+def shipments_strategy(draw):
+    lot_data = draw(lots_strategy)
+    site_data = draw(sites_strategy)
+
+    # Ensure initial quantity is sufficient for shipment
+    quantity_shipped = draw(st.integers(min_value=1, max_value=10000))
+    lot_data.initial_quantity = quantity_shipped + draw(st.integers(min_value=0, max_value=1000))
+
+    shipment_specific_data = {
+        "shipment_date": draw(
+            st.dates(
+                min_value=date.today() - timedelta(days=30),
+                max_value=date.today() + timedelta(days=30),
+            )
+        ),
+        "quantity_shipped": quantity_shipped,
+        "anticipated_arrival_date": draw(
+            st.dates(
+                min_value=date.today(),
+                max_value=date.today() + timedelta(days=60),
+            )
+        ),
+    }
+    return lot_data, site_data, shipment_specific_data
+
+
+@given(lot_data=lots_strategy)
+def test_property_create_lot(lot_data):
+    """Test creating a lot record with property-based testing."""
+    # Setup a new in-memory database for each test example
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session_factory = init_db("sqlite:///:memory:")
+    session = session_factory()
+
+    try:
+        # Create a Lot object using the generated data
+        lot = Lot(
+            lot_number=lot_data.lot_number,
+            expiration_date=lot_data.expiration_date,
+            initial_quantity=lot_data.initial_quantity,
+        )
+        session.add(lot)
+        session.commit()
+
+        # Query the Lot back from the database
+        result = session.query(Lot).filter_by(lot_number=lot_data.lot_number).first()
+
+        # Assert that the retrieved Lot object is not None
+        assert result is not None
+
+        # Assert that its attributes match the generated values
+        assert result.lot_number == lot_data.lot_number
+        assert result.expiration_date == lot_data.expiration_date
+        assert result.initial_quantity == lot_data.initial_quantity
+    finally:
+        session.close()
+
+
+@given(shipment_creation_data=shipments_strategy())
+def test_property_create_shipment(shipment_creation_data):
+    """Test creating a shipment record with property-based testing."""
+    lot_data, site_data, shipment_specific_data = shipment_creation_data
+
+    # Setup a new in-memory database for each test example
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session_factory = init_db("sqlite:///:memory:")
+    session = session_factory()
+
+    try:
+        # Create and persist Lot
+        lot = Lot(
+            lot_number=lot_data.lot_number,
+            expiration_date=lot_data.expiration_date,
+            initial_quantity=lot_data.initial_quantity,
+        )
+        session.add(lot)
+        session.commit()
+        # Refresh to get Lot with all fields populated if needed, e.g., lot_id
+        session.refresh(lot)
+
+
+        # Create and persist Site
+        site = Site(
+            site_name=site_data.site_name,
+            contact_info=site_data.contact_info,
+        )
+        session.add(site)
+        session.commit()
+        # Refresh to get Site with all fields populated if needed, e.g., site_id
+        session.refresh(site)
+
+        # Create Shipment
+        shipment = Shipment(
+            lot_number=lot.lot_number,  # Use lot_number from persisted Lot
+            site_name=site.site_name,  # Use site_name from persisted Site
+            shipment_date=shipment_specific_data["shipment_date"],
+            quantity_shipped=shipment_specific_data["quantity_shipped"],
+            anticipated_arrival_date=shipment_specific_data[
+                "anticipated_arrival_date"
+            ],
+        )
+        session.add(shipment)
+        session.commit()
+        # Refresh to get Shipment with all fields populated, e.g., shipment_id
+        session.refresh(shipment)
+
+        # Query the Shipment back from the database
+        # Using shipment_id is the most robust way if it's available
+        retrieved_shipment = session.query(Shipment).get(shipment.shipment_id)
+
+        # Assert that the retrieved Shipment object is not None
+        assert retrieved_shipment is not None
+
+        # Assert its properties match the generated/input data
+        assert retrieved_shipment.lot_number == lot.lot_number
+        assert retrieved_shipment.site_name == site.site_name
+        assert retrieved_shipment.shipment_date == shipment_specific_data["shipment_date"]
+        assert retrieved_shipment.quantity_shipped == shipment_specific_data["quantity_shipped"]
+        assert (
+            retrieved_shipment.anticipated_arrival_date
+            == shipment_specific_data["anticipated_arrival_date"]
+        )
+
+        # Assert relationships
+        assert retrieved_shipment.lot is not None
+        assert retrieved_shipment.site is not None
+        assert retrieved_shipment.lot.lot_number == lot.lot_number
+        assert retrieved_shipment.site.site_name == site.site_name
+
+    finally:
+        session.close()
+
+
+# Define a Hypothesis strategy for generating Inventory data
+@st.composite
+def inventories_strategy(draw):
+    lot_data = draw(lots_strategy)
+    site_data = draw(sites_strategy)
+    inventory_specific_data = {
+        "current_quantity": draw(st.integers(min_value=0, max_value=100000)),
+        "last_updated_date": draw(
+            st.dates(
+                min_value=date.today() - timedelta(days=30),
+                max_value=date.today(),
+            )
+        ),
+    }
+    return lot_data, site_data, inventory_specific_data
+
+
+@given(site_data=sites_strategy)
+def test_property_create_site(site_data):
+    """Test creating a site record with property-based testing."""
+    # Setup a new in-memory database for each test example
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session_factory = init_db("sqlite:///:memory:")
+    session = session_factory()
+
+    try:
+        # Create a Site object using the generated data
+        site = Site(
+            site_name=site_data.site_name,
+            contact_info=site_data.contact_info,
+        )
+        session.add(site)
+        session.commit()
+
+        # Query the Site back from the database
+        result = session.query(Site).filter_by(site_name=site_data.site_name).first()
+
+        # Assert that the retrieved Site object is not None
+        assert result is not None
+
+        # Assert that its attributes match the generated values
+        assert result.site_name == site_data.site_name
+        assert result.contact_info == site_data.contact_info
+    finally:
+        session.close()
+
+
+@given(inventory_creation_data=inventories_strategy())
+def test_property_create_inventory(inventory_creation_data):
+    """Test creating an inventory record with property-based testing."""
+    lot_data, site_data, inventory_specific_data = inventory_creation_data
+
+    # Setup a new in-memory database for each test example
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session_factory = init_db("sqlite:///:memory:")
+    session = session_factory()
+
+    try:
+        # Create and persist Lot
+        lot = Lot(
+            lot_number=lot_data.lot_number,
+            expiration_date=lot_data.expiration_date,
+            initial_quantity=lot_data.initial_quantity,
+        )
+        session.add(lot)
+        session.commit()
+        session.refresh(lot)
+
+        # Create and persist Site
+        site = Site(
+            site_name=site_data.site_name,
+            contact_info=site_data.contact_info,
+        )
+        session.add(site)
+        session.commit()
+        session.refresh(site)
+
+        # Create Inventory
+        inventory = Inventory(
+            lot_number=lot.lot_number,
+            site_name=site.site_name,
+            current_quantity=inventory_specific_data["current_quantity"],
+            last_updated_date=inventory_specific_data["last_updated_date"],
+        )
+        session.add(inventory)
+        session.commit()
+        session.refresh(inventory)
+
+        # Query the Inventory back from the database
+        retrieved_inventory = session.query(Inventory).get(inventory.inventory_id)
+
+        # Assert that the retrieved Inventory object is not None
+        assert retrieved_inventory is not None
+
+        # Assert its properties match the generated/input data
+        assert retrieved_inventory.current_quantity == inventory_specific_data["current_quantity"]
+        assert retrieved_inventory.last_updated_date == inventory_specific_data["last_updated_date"]
+
+        # Assert relationships
+        assert retrieved_inventory.lot is not None
+        assert retrieved_inventory.site is not None
+        assert retrieved_inventory.lot.lot_number == lot.lot_number
+        assert retrieved_inventory.site.site_name == site.site_name
+
+    finally:
+        session.close()
