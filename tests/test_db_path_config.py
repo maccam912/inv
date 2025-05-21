@@ -1,11 +1,7 @@
 # SPDX-FileCopyrightText: 2025-present Matt Koski <maccam912@gmail.com>
 #
 # SPDX-License-Identifier: MIT
-import os
 import tempfile
-
-import pytest
-from sqlalchemy.engine.base import Engine
 
 from inv.db.models import init_db
 from inv.tui.app import InventoryApp
@@ -36,9 +32,9 @@ def test_app_uses_custom_db_path():
     with tempfile.NamedTemporaryFile(suffix=".db") as tmp:
         db_path = f"sqlite:///{tmp.name}"
         app = InventoryApp(db_path=db_path)
-        
+
         # Get the engine from the session factory
         engine = app.Session.kw["bind"]
-        
+
         # Check that the app is using the provided database path
         assert str(engine.url) == db_path

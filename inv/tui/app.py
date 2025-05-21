@@ -35,7 +35,7 @@ class InventoryApp(App):
     def __init__(self, *args, db_path: str | None = None, **kwargs) -> None:
         """
         Initialize the application.
-        
+
         Args:
             db_path: Optional path to the database. If None, uses the default path.
             *args: Additional positional arguments.
