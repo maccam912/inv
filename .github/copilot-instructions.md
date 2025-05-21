@@ -1,14 +1,74 @@
-This is a python project that uses hatch for testing and packaging. Continue to use hatch where possible. Use UV if necessary.
+Project Tooling
 
-Always work according to the plan in the README.md file. If you are unsure about the plan, ask for clarification.
-If you need to make changes to the plan, discuss them with the team first.
+Use Hatch for all testing, packaging, and environment management.
 
-This should use textual for the TUI, sqlite for the database.
+Do not use pip install directly—there’s a firewall blocking internet access. All deps must be managed offline or via Hatch.
 
-Always write testable code, and add unit tests. Also document your code with docstrings.
+If you absolutely must, you may fall back to UV, but Hatch is the first choice.
 
-Use types where possible.
+Follow the Plan
 
-All code checks must pass before you submit a PR for review. Before asking for reviews, run `uvx hatch run check` and fix any errors you have. Any PR which does not pass these checks will be rejected, so do yourself a favor and run the checks before you claim to be finished.
+Always work from README.md.
 
-*** IMPORTANT: ALWAYS run `uvx hatch run check` locally to verify that all checks pass before submitting your work. Never skip this step! A PR with failing checks will be automatically rejected. ***
+If the README is unclear, ask immediately—do not make assumptions.
+
+If you think the plan needs updating, propose changes to the team before coding.
+
+Architecture Choices
+
+TUI library: use textual.
+
+Database: use SQLite.
+
+Code Quality
+
+Write testable functions and modules.
+
+Add thorough unit tests alongside your code.
+
+Document every function, class, and module with docstrings.
+
+Use type hints everywhere reasonable.
+
+Pre-PR Checks
+
+Before creating any Pull Request:
+
+Run uvx hatch run check locally.
+
+Fix all errors and warnings.
+
+Never skip this step—PRs with failing checks are rejected automatically.
+
+Branch & Commit Best Practices
+
+Use feature/ or bugfix/ prefixes in branch names (e.g., feature/add-login).
+
+Write clear, concise commit messages:
+
+Title: short summary (50 chars max).
+
+Body (optional): explain “why,” not “what.”
+
+PR Etiquette
+
+Include a brief description of:
+
+What you’ve done.
+
+Why you made any design decisions.
+
+Link to any relevant issue or discussion.
+
+If your change affects documentation, update README or docs too.
+
+Continuous Integration
+
+Ensure your code passes CI pipelines (linting, formatting, tests) on the remote before requesting review.
+
+🚨 IMPORTANT
+Always run:
+
+uvx hatch run check
+locally and confirm zero errors before opening a PR.
+A PR with failing checks will be rejected—so run the checks every time!
