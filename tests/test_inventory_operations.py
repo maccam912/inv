@@ -14,6 +14,7 @@ from inv.db.operations import (
     create_lot,
     create_shipment,
     create_site,
+    predict_annual_usage,
     predict_leftover_quantity,
     predict_runout_date,
     read_inventories,
@@ -890,3 +891,166 @@ def test_predict_leftover_quantity_expired_lot(test_db):
     # Since lot is already expired, leftover should be current inventory
     current_quantity = TEST_QUANTITY - 40  # 60
     assert leftover_quantity == current_quantity
+
+
+def test_predict_annual_usage(test_db, test_lot_and_site):
+    """Test predicting annual usage for a lot at a specific site."""
+    lot_number, site_name = test_lot_and_site
+
+    # Create a shipment from 30 days ago
+    past_date = date.today() - timedelta(days=30)
+    shipment = create_shipment(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        shipment_date=past_date,
+        quantity_shipped=TEST_QUANTITY,
+    )
+
+    # Record arrival
+    record_stock_arrival(test_db, shipment_id=shipment.shipment_id)
+
+    # Record some usage (half of the quantity)
+    usage_amount = TEST_QUANTITY // 2
+    record_stock_usage(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        quantity_used=usage_amount,
+    )
+
+    # Calculate annual usage
+    annual_usage = predict_annual_usage(
+        test_db, lot_number=lot_number, site_name=site_name
+    )
+
+    # Daily usage rate is (usage_amount / 30) = 50 / 30 = 1.667 units per day
+    # Annual usage is 1.667 * 365 = 608.33, rounded to 608
+    expected_daily_rate = usage_amount / 30
+    expected_annual_usage = int(expected_daily_rate * 365)
+    assert annual_usage == expected_annual_usage
+
+
+def test_predict_annual_usage_multiple_shipments(test_db, test_lot_and_site):
+    """Test predicting annual usage with multiple shipments over time."""
+    lot_number, site_name = test_lot_and_site
+
+    # Create first shipment 60 days ago
+    first_date = date.today() - timedelta(days=60)
+    shipment1 = create_shipment(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        shipment_date=first_date,
+        quantity_shipped=50,
+    )
+
+    # Record first arrival
+    record_stock_arrival(test_db, shipment_id=shipment1.shipment_id)
+
+    # Use some stock after first shipment
+    record_stock_usage(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        quantity_used=30,
+    )
+
+    # Create second shipment 30 days ago
+    shipment2 = create_shipment(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        shipment_date=date.today() - timedelta(days=30),
+        quantity_shipped=50,
+    )
+
+    # Record second arrival
+    record_stock_arrival(test_db, shipment_id=shipment2.shipment_id)
+
+    # Use more stock after second shipment
+    record_stock_usage(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        quantity_used=40,
+    )
+
+    # Calculate annual usage
+    annual_usage = predict_annual_usage(
+        test_db, lot_number=lot_number, site_name=site_name
+    )
+
+    # Total shipped: 50 + 50 = 100
+    # Total used: 30 + 40 = 70
+    # Days elapsed: 60
+    # Daily usage rate: 70 / 60 = 1.1667 units per day
+    # Annual usage: 1.1667 * 365 = 425.83, rounded to 425
+    daily_usage_rate = 70 / 60
+    expected_annual_usage = int(daily_usage_rate * 365)
+    assert annual_usage == expected_annual_usage
+
+
+def test_predict_annual_usage_no_usage(test_db, test_lot_and_site):
+    """Test predicting annual usage when no stock has been used."""
+    lot_number, site_name = test_lot_and_site
+
+    # Create a shipment
+    shipment = create_shipment(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        shipment_date=date.today() - timedelta(days=10),
+        quantity_shipped=TEST_QUANTITY,
+    )
+
+    # Record arrival (but no usage)
+    record_stock_arrival(test_db, shipment_id=shipment.shipment_id)
+
+    # Calculate annual usage
+    annual_usage = predict_annual_usage(
+        test_db, lot_number=lot_number, site_name=site_name
+    )
+
+    # Since there's no usage, should return None
+    assert annual_usage is None
+
+
+def test_predict_annual_usage_nonexistent_inventory(test_db):
+    """Test predicting annual usage for non-existent inventory."""
+    annual_usage = predict_annual_usage(
+        test_db, lot_number="NONEXISTENT", site_name="NONEXISTENT"
+    )
+    assert annual_usage is None
+
+
+def test_predict_annual_usage_same_day(test_db, test_lot_and_site):
+    """Test predicting annual usage when shipment and usage are on the same day."""
+    lot_number, site_name = test_lot_and_site
+
+    # Create a shipment for today
+    shipment = create_shipment(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        shipment_date=date.today(),
+        quantity_shipped=TEST_QUANTITY,
+    )
+
+    # Record arrival
+    record_stock_arrival(test_db, shipment_id=shipment.shipment_id)
+
+    # Use some stock
+    record_stock_usage(
+        test_db,
+        lot_number=lot_number,
+        site_name=site_name,
+        quantity_used=10,
+    )
+
+    # Calculate annual usage - should return None since usage rate can't be calculated
+    annual_usage = predict_annual_usage(
+        test_db, lot_number=lot_number, site_name=site_name
+    )
+
+    assert annual_usage is None
