@@ -53,8 +53,17 @@ pip install inv
    ```console
    inv
    ```
+   
+   Or specify a custom database path (useful for network drives):
+   ```console
+   inv --db-path "sqlite:///path/to/your/inventory.db"
+   ```
+   
+   For network drives, use:
+   ```console
+   inv --db-path "sqlite:////server/share/inventory.db"
+   ```
 2. Follow the on-screen instructions to navigate and manage your inventory.
-3. Configure the database path if you wish to use a network drive (see app settings or CLI options).
 
 ## Roadmap
 
