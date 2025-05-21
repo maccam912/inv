@@ -19,6 +19,7 @@ from inv.db.operations import (
     read_inventories,
     read_lot,
     read_lots,
+    suggest_inventory_transfers,
 )
 
 
@@ -80,6 +81,7 @@ class Dashboard(Container):
         expiring_lots = self.get_expiring_lots()
         low_inventory = self.get_low_inventory()
         slow_moving = self.get_slow_moving_inventory()
+        transfer_suggestions = self.get_transfer_suggestions()
 
         # Add warning sections
         warnings_container.mount(
@@ -139,6 +141,25 @@ class Dashboard(Container):
         else:
             warnings_container.mount(
                 Label("No slow-moving inventory identified.", classes="no_warning")
+            )
+
+        # Transfer suggestions section
+        warnings_container.mount(
+            Label("### Suggested Inventory Transfers", classes="warning_subheading")
+        )
+        if transfer_suggestions:
+            for suggestion in transfer_suggestions:
+                warnings_container.mount(
+                    Label(
+                        f"💡 Transfer {suggestion['quantity']} units of Lot {suggestion['lot_number']} "
+                        f"from {suggestion['source_site']} to {suggestion['destination_site']} "
+                        f"(extends inventory by {suggestion['days_extended']} days)",
+                        classes="suggestion_item",
+                    )
+                )
+        else:
+            warnings_container.mount(
+                Label("No inventory transfers suggested.", classes="no_warning")
             )
 
     def get_expiring_lots(self) -> list[dict[str, Any]]:
@@ -254,3 +275,32 @@ class Dashboard(Container):
 
         # Sort by percent leftover (descending)
         return sorted(result, key=lambda x: x["percent_leftover"], reverse=True)
+
+    def get_transfer_suggestions(self) -> list[dict[str, Any]]:
+        """
+        Get suggestions for inventory transfers between sites.
+
+        Returns:
+            List of dictionaries with transfer suggestion information
+        """
+        result: list[dict[str, Any]] = []
+
+        if self.session_factory is None:
+            return result
+
+        with self.session_factory() as session:
+            # Get transfer suggestions from the database
+            suggestions = suggest_inventory_transfers(session)
+
+            for suggestion in suggestions:
+                result.append(
+                    {
+                        "lot_number": suggestion.lot_number,
+                        "source_site": suggestion.source_site,
+                        "destination_site": suggestion.destination_site,
+                        "quantity": suggestion.quantity,
+                        "days_extended": suggestion.days_extended,
+                    }
+                )
+
+        return result
