@@ -5,7 +5,7 @@
 
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -24,7 +24,7 @@ class SiteForm(FormScreen):
     def __init__(
         self,
         session_factory: Callable[[], AbstractContextManager[Session]],
-        site_name: Optional[str] = None,
+        site_name: str | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -40,7 +40,7 @@ class SiteForm(FormScreen):
         title = "Edit Site" if site_name else "Add New Site"
         super().__init__(session_factory, title, *args, **kwargs)
         self.site_name = site_name
-        self.site: Optional[Site] = None
+        self.site: Site | None = None
 
         if site_name:
             with self.session_factory() as session:

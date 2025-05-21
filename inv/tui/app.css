@@ -110,3 +110,19 @@ TabbedContent > .tab-content {
 #generate_report {
     margin-top: 1;
 }
+
+/* Button container styling */
+.button-container {
+    margin: 1 2;
+    height: auto;
+    align-horizontal: right;
+}
+
+.button-container Button {
+    margin-left: 1;
+}
+
+/* Data tables spacing */
+DataTable {
+    margin-bottom: 1;
+}

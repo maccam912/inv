@@ -5,8 +5,7 @@
 
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from datetime import date
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -16,7 +15,12 @@ from textual.widgets import DatePicker, Input
 
 from inv.db.models import Lot
 from inv.db.operations import create_lot, read_lot, update_lot
-from inv.tui.forms import FormScreen, create_date_field, create_number_field, create_text_field
+from inv.tui.forms import (
+    FormScreen,
+    create_date_field,
+    create_number_field,
+    create_text_field,
+)
 
 
 class LotForm(FormScreen):
@@ -25,7 +29,7 @@ class LotForm(FormScreen):
     def __init__(
         self,
         session_factory: Callable[[], AbstractContextManager[Session]],
-        lot_number: Optional[str] = None,
+        lot_number: str | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -41,7 +45,7 @@ class LotForm(FormScreen):
         title = "Edit Lot" if lot_number else "Add New Lot"
         super().__init__(session_factory, title, *args, **kwargs)
         self.lot_number = lot_number
-        self.lot: Optional[Lot] = None
+        self.lot: Lot | None = None
 
         if lot_number:
             with self.session_factory() as session:
@@ -63,8 +67,8 @@ class LotForm(FormScreen):
                 lot_number_input.disabled = True
 
                 yield from create_date_field(
-                    "expiration_date", 
-                    "Expiration Date:", 
+                    "expiration_date",
+                    "Expiration Date:",
                     value=self.lot.expiration_date
                 )
                 yield from create_number_field(

@@ -8,11 +8,13 @@ from contextlib import AbstractContextManager
 from typing import Any
 
 from sqlalchemy.orm import Session
+from textual import on
 from textual.app import ComposeResult
-from textual.containers import Container
-from textual.widgets import DataTable, Label
+from textual.containers import Container, Horizontal
+from textual.widgets import Button, DataTable, Label
 
 from inv.db.operations import read_inventories
+from inv.tui.inventory_usage_form import InventoryUsageForm
 
 
 class InventoryScreen(Container):
@@ -40,6 +42,9 @@ class InventoryScreen(Container):
         """Create child widgets for the inventory screen."""
         yield Label("Inventory Tracking", classes="title")
         yield DataTable(id="inventory_table")
+
+        with Horizontal(classes="button-container"):
+            yield Button("Record Usage", id="record_usage", variant="primary")
 
     def on_mount(self) -> None:
         """Set up the screen when it's mounted."""
@@ -74,3 +79,13 @@ class InventoryScreen(Container):
                     str(inventory.last_updated_date),
                     key=f"{inventory.lot_number}-{inventory.site_name}",
                 )
+
+    @on(Button.Pressed, "#record_usage")
+    def handle_record_usage(self) -> None:
+        """Handle the record usage button being pressed."""
+        def handle_form_closed(result: bool) -> None:
+            if result:
+                self.refresh_inventory()
+
+        form = InventoryUsageForm(self.session_factory)
+        self.app.push_screen(form, handle_form_closed)

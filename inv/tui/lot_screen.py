@@ -46,7 +46,7 @@ class LotScreen(Container):
         """Create child widgets for the lot screen."""
         yield Label("Lot Management", classes="title")
         yield DataTable(id="lots_table")
-        
+
         with Horizontal(classes="button-container"):
             yield Button("Add Lot", id="add_lot", variant="primary")
             yield Button("Edit Selected", id="edit_lot", variant="default")
@@ -78,7 +78,7 @@ class LotScreen(Container):
                     str(lot.initial_quantity),
                     key=lot.lot_number,
                 )
-        
+
         self.update_edit_button_state()
 
     def _get_expiration_status(self, expiration_date: date) -> str:
@@ -97,40 +97,40 @@ class LotScreen(Container):
         elif (expiration_date - today).days <= self.EXPIRING_SOON_DAYS:
             return "(EXPIRING SOON)"
         return ""
-    
+
     def update_edit_button_state(self) -> None:
         """Update the state of the edit button based on the selected row."""
         edit_button = self.query_one("#edit_lot", Button)
         edit_button.disabled = self.lots_table.cursor_row is None
-    
+
     @on(DataTable.RowSelected)
     def handle_row_selected(self) -> None:
         """Handle a row being selected in the table."""
         self.update_edit_button_state()
-    
+
     @on(DataTable.RowHighlighted)
     def handle_row_highlighted(self) -> None:
         """Handle a row being highlighted in the table."""
         self.update_edit_button_state()
-    
+
     @on(Button.Pressed, "#add_lot")
     def handle_add_lot(self) -> None:
         """Handle the add lot button being pressed."""
         def handle_form_closed(result: bool) -> None:
             if result:
                 self.refresh_lots()
-        
+
         form = LotForm(self.session_factory)
         self.app.push_screen(form, handle_form_closed)
-    
+
     @on(Button.Pressed, "#edit_lot")
     def handle_edit_lot(self) -> None:
         """Handle the edit lot button being pressed."""
         lot_number = self.lots_table.get_row_at(self.lots_table.cursor_row)[0]
-        
+
         def handle_form_closed(result: bool) -> None:
             if result:
                 self.refresh_lots()
-        
+
         form = LotForm(self.session_factory, lot_number=lot_number)
         self.app.push_screen(form, handle_form_closed)
