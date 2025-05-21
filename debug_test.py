@@ -1,9 +1,8 @@
 import sys
-import os
 import tempfile
 
 # Add the project directory to the path
-sys.path.insert(0, os.path.abspath('/home/runner/work/inv/inv'))
+sys.path.insert(0, sys.path[0])
 
 # Import the necessary modules
 from inv.db.models import init_db
@@ -30,10 +29,15 @@ def test_db_initialization_custom():
 
 # Test that the app uses the provided database path
 def test_app_uses_custom_db_path():
-    # Use a temporary file for the test
-    with tempfile.NamedTemporaryFile(suffix=".db") as tmp:
-        db_path = f"sqlite:///{tmp.name}"
-        print(f"Using temporary file: {tmp.name}")
+    # Use a temporary file with delete=False to ensure it works on Windows
+    import os
+    tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    tmp_path = tmp.name
+    tmp.close()  # Close the file handle so SQLite can access it
+    
+    try:
+        db_path = f"sqlite:///{tmp_path}"
+        print(f"Using temporary file: {tmp_path}")
         app = InventoryApp(db_path=db_path)
 
         # Get the engine from the session factory
@@ -42,6 +46,10 @@ def test_app_uses_custom_db_path():
         # Check that the app is using the provided database path
         assert str(engine.url) == db_path
         print("test_app_uses_custom_db_path passed")
+    finally:
+        # Clean up the temporary file
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
 if __name__ == "__main__":
     test_db_initialization_default()
