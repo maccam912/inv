@@ -60,7 +60,7 @@ class InventoryApp(App):
         # Create a tabbed interface with different screens
         with TabbedContent(id="screen_tabs"):
             with TabPane("Dashboard", id="dashboard_tab"):
-                yield Dashboard(id="dashboard")
+                yield Dashboard(self.get_session, id="dashboard")
             with TabPane("Lot Management", id="lot_tab"):
                 yield LotScreen(self.get_session, id="lot_screen")
             with TabPane("Site Management", id="site_tab"):
