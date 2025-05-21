@@ -11,13 +11,19 @@ from inv.__about__ import __version__
     invoke_without_command=True,
 )
 @click.version_option(version=__version__, prog_name="inv")
+@click.option(
+    "--db-path",
+    help="Path to the SQLite database file (can be on a network drive)",
+    default=None,
+    type=str,
+)
 @click.pass_context
-def inv(ctx: click.Context):
+def inv(ctx: click.Context, db_path: str | None):
     if ctx.invoked_subcommand is None:
         # Launch the TUI app
         from .tui.app import InventoryApp
 
-        app = InventoryApp()
+        app = InventoryApp(db_path=db_path)
         app.run()
     else:
         pass  # Handle subcommands if any are added later

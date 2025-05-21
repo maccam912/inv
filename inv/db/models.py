@@ -126,8 +126,10 @@ def init_db(db_path: str = "sqlite:///inventory.db") -> sessionmaker:
     Initialize the database and return a session maker.
 
     Args:
-        db_path: Path to the database. Defaults to a local SQLite database.
-                Can be configured to use a network drive.
+        db_path: SQLAlchemy database URL. Defaults to a local SQLite database.
+                For network paths, use 'sqlite:////path/to/network/drive/inventory.db'
+                For relative paths, use 'sqlite:///path/to/inventory.db'
+                For in-memory database (testing), use 'sqlite:///:memory:'
 
     Returns:
         A sessionmaker that can be used to create database sessions.

@@ -32,11 +32,18 @@ class InventoryApp(App):
 
     dark: bool = False
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Initialize the application."""
+    def __init__(self, *args, db_path: str | None = None, **kwargs) -> None:
+        """
+        Initialize the application.
+        
+        Args:
+            db_path: Optional path to the database. If None, uses the default path.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__(*args, **kwargs)
-        # Initialize the database
-        self.Session: sessionmaker = init_db()  # This returns a sessionmaker
+        # Initialize the database with the provided path, if any
+        self.Session: sessionmaker = init_db(db_path) if db_path else init_db()
 
     @contextmanager
     def get_session(self) -> Iterator[Session]:

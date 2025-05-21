@@ -12,9 +12,15 @@ from inv.tui.app import InventoryApp
     invoke_without_command=True,
 )
 @click.version_option(version=__version__, prog_name="inv")
+@click.option(
+    "--db-path",
+    help="Path to the SQLite database file (can be on a network drive)",
+    default=None,
+    type=str,
+)
 @click.pass_context
-def inv(ctx: click.Context):
+def inv(ctx: click.Context, db_path: str | None):
     """Main entry point for the inv CLI."""
     if ctx.invoked_subcommand is None:
-        app = InventoryApp()
+        app = InventoryApp(db_path=db_path)
         app.run()
