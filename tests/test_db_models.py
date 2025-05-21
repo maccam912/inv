@@ -4,8 +4,9 @@
 from datetime import date, timedelta
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from sqlalchemy import create_engine
-from hypothesis import given, strategies as st
 
 from inv.db.models import Base, Inventory, Lot, Shipment, Site, init_db
 
@@ -165,7 +166,9 @@ def shipments_strategy(draw):
 
     # Ensure initial quantity is sufficient for shipment
     quantity_shipped = draw(st.integers(min_value=1, max_value=10000))
-    lot_data.initial_quantity = quantity_shipped + draw(st.integers(min_value=0, max_value=1000))
+    lot_data.initial_quantity = quantity_shipped + draw(
+        st.integers(min_value=0, max_value=1000)
+    )
 
     shipment_specific_data = {
         "shipment_date": draw(
@@ -241,7 +244,6 @@ def test_property_create_shipment(shipment_creation_data):
         # Refresh to get Lot with all fields populated if needed, e.g., lot_id
         session.refresh(lot)
 
-
         # Create and persist Site
         site = Site(
             site_name=site_data.site_name,
@@ -258,9 +260,7 @@ def test_property_create_shipment(shipment_creation_data):
             site_name=site.site_name,  # Use site_name from persisted Site
             shipment_date=shipment_specific_data["shipment_date"],
             quantity_shipped=shipment_specific_data["quantity_shipped"],
-            anticipated_arrival_date=shipment_specific_data[
-                "anticipated_arrival_date"
-            ],
+            anticipated_arrival_date=shipment_specific_data["anticipated_arrival_date"],
         )
         session.add(shipment)
         session.commit()
@@ -277,8 +277,13 @@ def test_property_create_shipment(shipment_creation_data):
         # Assert its properties match the generated/input data
         assert retrieved_shipment.lot_number == lot.lot_number
         assert retrieved_shipment.site_name == site.site_name
-        assert retrieved_shipment.shipment_date == shipment_specific_data["shipment_date"]
-        assert retrieved_shipment.quantity_shipped == shipment_specific_data["quantity_shipped"]
+        assert (
+            retrieved_shipment.shipment_date == shipment_specific_data["shipment_date"]
+        )
+        assert (
+            retrieved_shipment.quantity_shipped
+            == shipment_specific_data["quantity_shipped"]
+        )
         assert (
             retrieved_shipment.anticipated_arrival_date
             == shipment_specific_data["anticipated_arrival_date"]
@@ -391,8 +396,14 @@ def test_property_create_inventory(inventory_creation_data):
         assert retrieved_inventory is not None
 
         # Assert its properties match the generated/input data
-        assert retrieved_inventory.current_quantity == inventory_specific_data["current_quantity"]
-        assert retrieved_inventory.last_updated_date == inventory_specific_data["last_updated_date"]
+        assert (
+            retrieved_inventory.current_quantity
+            == inventory_specific_data["current_quantity"]
+        )
+        assert (
+            retrieved_inventory.last_updated_date
+            == inventory_specific_data["last_updated_date"]
+        )
 
         # Assert relationships
         assert retrieved_inventory.lot is not None
