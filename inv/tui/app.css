@@ -46,3 +46,33 @@ TabbedContent > .tab-content {
     text-align: center;
     margin-top: 1;
 }
+
+/* Warnings styling */
+#warnings_container {
+    margin: 1;
+    height: auto;
+    max-height: 20;
+}
+
+.warning_heading {
+    text-style: bold;
+    color: $accent;
+    margin-top: 1;
+    margin-bottom: 1;
+}
+
+.warning_subheading {
+    text-style: bold;
+    color: $secondary;
+    margin-top: 1;
+}
+
+.warning_item {
+    margin-left: 1;
+    color: $warning;
+}
+
+.no_warning {
+    margin-left: 1;
+    color: $success;
+}
