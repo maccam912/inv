@@ -19,6 +19,7 @@ from inv.db.operations import (
     read_inventories,
     read_lot,
     read_lots,
+    suggest_inventory_transfers,
 )
 
 
@@ -80,19 +81,29 @@ class Dashboard(Container):
         expiring_lots = self.get_expiring_lots()
         low_inventory = self.get_low_inventory()
         slow_moving = self.get_slow_moving_inventory()
+        transfer_suggestions = self.get_transfer_suggestions()
 
         # Add warning sections
         warnings_container.mount(
             Label("## Inventory Warnings", classes="warning_heading")
         )
 
-        # Expiring lots section
-        warnings_container.mount(
+        # Display various warning sections
+        self._display_expiring_lots(warnings_container, expiring_lots)
+        self._display_low_inventory(warnings_container, low_inventory)
+        self._display_slow_moving(warnings_container, slow_moving)
+        self._display_transfer_suggestions(warnings_container, transfer_suggestions)
+
+    def _display_expiring_lots(
+        self, container: VerticalScroll, expiring_lots: list[dict[str, Any]]
+    ) -> None:
+        """Display lots that are nearing expiration."""
+        container.mount(
             Label("### Lots Nearing Expiration", classes="warning_subheading")
         )
         if expiring_lots:
             for lot_info in expiring_lots:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"⚠️ Lot {lot_info['lot_number']} expires in {lot_info['days']} days "
                         f"({lot_info['date']})",
@@ -100,17 +111,16 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
-                Label("No lots expiring soon.", classes="no_warning")
-            )
+            container.mount(Label("No lots expiring soon.", classes="no_warning"))
 
-        # Low inventory section
-        warnings_container.mount(
-            Label("### Low Inventory", classes="warning_subheading")
-        )
+    def _display_low_inventory(
+        self, container: VerticalScroll, low_inventory: list[dict[str, Any]]
+    ) -> None:
+        """Display inventory items that are running low."""
+        container.mount(Label("### Low Inventory", classes="warning_subheading"))
         if low_inventory:
             for inv_info in low_inventory:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"⚠️ Lot {inv_info['lot_number']} at {inv_info['site_name']} "
                         f"will run out in {inv_info['days']} days ({inv_info['date']})",
@@ -118,17 +128,20 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
+            container.mount(
                 Label("No sites running low on inventory.", classes="no_warning")
             )
 
-        # Slow-moving inventory section
-        warnings_container.mount(
+    def _display_slow_moving(
+        self, container: VerticalScroll, slow_moving: list[dict[str, Any]]
+    ) -> None:
+        """Display slow-moving inventory items."""
+        container.mount(
             Label("### Slow-Moving Inventory", classes="warning_subheading")
         )
         if slow_moving:
             for inv_info in slow_moving:
-                warnings_container.mount(
+                container.mount(
                     Label(
                         f"⚠️ Lot {inv_info['lot_number']} at {inv_info['site_name']} "
                         f"will have {inv_info['leftover']} units leftover at expiration "
@@ -137,8 +150,30 @@ class Dashboard(Container):
                     )
                 )
         else:
-            warnings_container.mount(
+            container.mount(
                 Label("No slow-moving inventory identified.", classes="no_warning")
+            )
+
+    def _display_transfer_suggestions(
+        self, container: VerticalScroll, transfer_suggestions: list[dict[str, Any]]
+    ) -> None:
+        """Display suggested inventory transfers."""
+        container.mount(
+            Label("### Suggested Inventory Transfers", classes="warning_subheading")
+        )
+        if transfer_suggestions:
+            for suggestion in transfer_suggestions:
+                container.mount(
+                    Label(
+                        f"💡 Transfer {suggestion['quantity']} units of Lot {suggestion['lot_number']} "
+                        f"from {suggestion['source_site']} to {suggestion['destination_site']} "
+                        f"(extends inventory by {suggestion['days_extended']} days)",
+                        classes="suggestion_item",
+                    )
+                )
+        else:
+            container.mount(
+                Label("No inventory transfers suggested.", classes="no_warning")
             )
 
     def get_expiring_lots(self) -> list[dict[str, Any]]:
@@ -254,3 +289,32 @@ class Dashboard(Container):
 
         # Sort by percent leftover (descending)
         return sorted(result, key=lambda x: x["percent_leftover"], reverse=True)
+
+    def get_transfer_suggestions(self) -> list[dict[str, Any]]:
+        """
+        Get suggestions for inventory transfers between sites.
+
+        Returns:
+            List of dictionaries with transfer suggestion information
+        """
+        result: list[dict[str, Any]] = []
+
+        if self.session_factory is None:
+            return result
+
+        with self.session_factory() as session:
+            # Get transfer suggestions from the database
+            suggestions = suggest_inventory_transfers(session)
+
+            for suggestion in suggestions:
+                result.append(
+                    {
+                        "lot_number": suggestion.lot_number,
+                        "source_site": suggestion.source_site,
+                        "destination_site": suggestion.destination_site,
+                        "quantity": suggestion.quantity,
+                        "days_extended": suggestion.days_extended,
+                    }
+                )
+
+        return result
