@@ -56,7 +56,62 @@ pip install inv
 2. Follow the on-screen instructions to navigate and manage your inventory.
 3. Configure the database path if you wish to use a network drive (see app settings or CLI options).
 
-For detailed instructions on how to use the application, please refer to the [User Guide](USERGUIDE.md).
+## For Developers
+
+### Setting Up a Development Environment
+
+```console
+# Clone the repository
+git clone https://github.com/maccam912/inv.git
+cd inv
+
+# Set up development environment with Hatch
+hatch env create
+```
+
+### Running Tests
+
+```console
+# Run all tests
+hatch run test
+
+# Run with code coverage
+hatch run cov
+```
+
+### Building the Package
+
+The project uses Hatch for packaging and distribution:
+
+```console
+# Build the package (creates both wheel and sdist)
+hatch build
+
+# Resulting distribution files will be in the dist/ directory
+ls dist/
+```
+
+### Installing the Development Version
+
+```console
+# Install the package in development mode
+hatch env run pip install -e .
+```
+
+### Quality Checks
+
+```console
+# Run all checks (formatting, linting, type checking, tests)
+hatch run check
+
+# Format the code
+hatch run format
+
+# Run type checking
+hatch run typecheck
+```
+
+
 
 ## Roadmap
 

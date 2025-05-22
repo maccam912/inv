@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "inv"
-description = ''
+description = 'Terminal-based inventory management application'
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
@@ -27,9 +27,9 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Documentation = "https://github.com/unknown/inv#readme"
-Issues = "https://github.com/unknown/inv/issues"
-Source = "https://github.com/unknown/inv"
+Documentation = "https://github.com/maccam912/inv#readme"
+Issues = "https://github.com/maccam912/inv/issues"
+Source = "https://github.com/maccam912/inv"
 
 [project.scripts]
 inv = "inv.cli:inv"
@@ -54,6 +54,7 @@ typecheck = "mypy inv tests {args}"
 fixup = ["ruff check inv tests --fix", "ruff format inv tests"]
 check = ["format", "lint", "typecheck", "cov"]
 noop = "ruff --version"
+test = "no-cov"
 
 [[tool.hatch.envs.test.matrix]]
 python = ["312"]
