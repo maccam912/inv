@@ -9,11 +9,13 @@ from datetime import date
 from typing import Any
 
 from sqlalchemy.orm import Session
+from textual import on
 from textual.app import ComposeResult
-from textual.containers import Container
-from textual.widgets import DataTable, Label
+from textual.containers import Container, Horizontal
+from textual.widgets import Button, DataTable, Label
 
 from inv.db.operations import read_lots
+from inv.tui.lot_form import LotForm
 
 
 class LotScreen(Container):
@@ -44,13 +46,17 @@ class LotScreen(Container):
         """Create child widgets for the lot screen."""
         yield Label("Lot Management", classes="title")
         yield DataTable(id="lots_table")
-        # No need for the help text - it's in the footer now
+
+        with Horizontal(classes="button-container"):
+            yield Button("Add Lot", id="add_lot", variant="primary")
+            yield Button("Edit Selected", id="edit_lot", variant="default")
 
     def on_mount(self) -> None:
         """Set up the screen when it's mounted."""
         self.lots_table = self.query_one("#lots_table", DataTable)
         self.lots_table.add_columns("Lot Number", "Expiration Date", "Initial Quantity")
         self.refresh_lots()
+        self.update_edit_button_state()
 
     def refresh_lots(self) -> None:
         """Refresh the lots table with data from the database."""
@@ -73,6 +79,8 @@ class LotScreen(Container):
                     key=lot.lot_number,
                 )
 
+        self.update_edit_button_state()
+
     def _get_expiration_status(self, expiration_date: date) -> str:
         """
         Get a status indicator for the expiration date.
@@ -89,3 +97,49 @@ class LotScreen(Container):
         elif (expiration_date - today).days <= self.EXPIRING_SOON_DAYS:
             return "(EXPIRING SOON)"
         return ""
+
+    def update_edit_button_state(self) -> None:
+        """Update the state of the edit button based on the selected row."""
+        edit_button = self.query_one("#edit_lot", Button)
+        table = self.lots_table
+        if table is not None:
+            edit_button.disabled = table.cursor_row is None
+        else:
+            edit_button.disabled = True
+
+    @on(DataTable.RowSelected)
+    def handle_row_selected(self) -> None:
+        """Handle a row being selected in the table."""
+        self.update_edit_button_state()
+
+    @on(DataTable.RowHighlighted)
+    def handle_row_highlighted(self) -> None:
+        """Handle a row being highlighted in the table."""
+        self.update_edit_button_state()
+
+    @on(Button.Pressed, "#add_lot")
+    def handle_add_lot(self) -> None:
+        """Handle the add lot button being pressed."""
+
+        def handle_form_closed(result: Any) -> None:
+            if result:
+                self.refresh_lots()
+
+        form = LotForm(self.session_factory)
+        self.app.push_screen(form, handle_form_closed)
+
+    @on(Button.Pressed, "#edit_lot")
+    def handle_edit_lot(self) -> None:
+        """Handle the edit lot button being pressed."""
+        table = self.lots_table
+        if table is None or table.cursor_row is None:
+            return
+
+        lot_number = table.get_row_at(table.cursor_row)[0]
+
+        def handle_form_closed(result: Any) -> None:
+            if result:
+                self.refresh_lots()
+
+        form = LotForm(self.session_factory, lot_number=lot_number)
+        self.app.push_screen(form, handle_form_closed)

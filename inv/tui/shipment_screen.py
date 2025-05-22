@@ -8,11 +8,13 @@ from contextlib import AbstractContextManager
 from typing import Any
 
 from sqlalchemy.orm import Session
+from textual import on
 from textual.app import ComposeResult
-from textual.containers import Container
-from textual.widgets import DataTable, Label
+from textual.containers import Container, Horizontal
+from textual.widgets import Button, DataTable, Label
 
-from inv.db.operations import read_shipments
+from inv.db.operations import read_shipments, record_stock_arrival
+from inv.tui.shipment_form import ShipmentForm
 
 
 class ShipmentScreen(Container):
@@ -40,7 +42,11 @@ class ShipmentScreen(Container):
         """Create child widgets for the shipment screen."""
         yield Label("Shipment Management", classes="title")
         yield DataTable(id="shipments_table")
-        # No need for the help text - it's in the footer now
+
+        with Horizontal(classes="button-container"):
+            yield Button("Add Shipment", id="add_shipment", variant="primary")
+            yield Button("Edit Selected", id="edit_shipment", variant="default")
+            yield Button("Record Arrival", id="record_arrival", variant="success")
 
     def on_mount(self) -> None:
         """Set up the screen when it's mounted."""
@@ -54,6 +60,7 @@ class ShipmentScreen(Container):
             "Anticipated Arrival Date",
         )
         self.refresh_shipments()
+        self.update_button_states()
 
     def refresh_shipments(self) -> None:
         """Refresh the shipments table with data from the database."""
@@ -82,3 +89,73 @@ class ShipmentScreen(Container):
                     anticipated_arrival,
                     key=str(shipment.shipment_id),
                 )
+
+        self.update_button_states()
+
+    def update_button_states(self) -> None:
+        """Update the state of the edit and record arrival buttons based on the selected row."""
+        edit_button = self.query_one("#edit_shipment", Button)
+        record_arrival_button = self.query_one("#record_arrival", Button)
+
+        table = self.shipments_table
+        has_selection = False
+        if table is not None:
+            has_selection = table.cursor_row is not None
+
+        edit_button.disabled = not has_selection
+        record_arrival_button.disabled = not has_selection
+
+    @on(DataTable.RowSelected)
+    def handle_row_selected(self) -> None:
+        """Handle a row being selected in the table."""
+        self.update_button_states()
+
+    @on(DataTable.RowHighlighted)
+    def handle_row_highlighted(self) -> None:
+        """Handle a row being highlighted in the table."""
+        self.update_button_states()
+
+    @on(Button.Pressed, "#add_shipment")
+    def handle_add_shipment(self) -> None:
+        """Handle the add shipment button being pressed."""
+
+        def handle_form_closed(result: Any) -> None:
+            if result:
+                self.refresh_shipments()
+
+        form = ShipmentForm(self.session_factory)
+        self.app.push_screen(form, handle_form_closed)
+
+    @on(Button.Pressed, "#edit_shipment")
+    def handle_edit_shipment(self) -> None:
+        """Handle the edit shipment button being pressed."""
+        table = self.shipments_table
+        if table is None or table.cursor_row is None:
+            return
+
+        shipment_id = int(table.get_row_at(table.cursor_row)[0])
+
+        def handle_form_closed(result: Any) -> None:
+            if result:
+                self.refresh_shipments()
+
+        form = ShipmentForm(self.session_factory, shipment_id=shipment_id)
+        self.app.push_screen(form, handle_form_closed)
+
+    @on(Button.Pressed, "#record_arrival")
+    def handle_record_arrival(self) -> None:
+        """Handle the record arrival button being pressed."""
+        table = self.shipments_table
+        if table is None or table.cursor_row is None:
+            return
+
+        shipment_id = int(table.get_row_at(table.cursor_row)[0])
+
+        with self.session_factory() as session:
+            try:
+                record_stock_arrival(session, shipment_id=shipment_id)
+                self.app.notify(
+                    "Shipment arrival recorded successfully", severity="information"
+                )
+            except Exception as e:
+                self.app.notify(f"Error recording arrival: {str(e)}", severity="error")
