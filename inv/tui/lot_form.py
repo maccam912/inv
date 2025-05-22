@@ -163,5 +163,7 @@ class LotForm(FormScreen):
             self.dismiss(True)
         except IntegrityError:
             self.show_message("Error: Lot number already exists")
+            return  # Early return to prevent further processing
         except Exception as e:
             self.show_message(f"Error: {str(e)}")
+            return  # Early return to prevent further processing
