@@ -79,7 +79,11 @@ class SiteScreen(Container):
     def update_edit_button_state(self) -> None:
         """Update the state of the edit button based on the selected row."""
         edit_button = self.query_one("#edit_site", Button)
-        edit_button.disabled = self.sites_table.cursor_row is None
+        table = self.sites_table
+        if table is not None:
+            edit_button.disabled = table.cursor_row is None
+        else:
+            edit_button.disabled = True
 
     @on(DataTable.RowSelected)
     def handle_row_selected(self) -> None:
@@ -95,7 +99,7 @@ class SiteScreen(Container):
     def handle_add_site(self) -> None:
         """Handle the add site button being pressed."""
 
-        def handle_form_closed(result: bool) -> None:
+        def handle_form_closed(result: Any) -> None:
             if result:
                 self.refresh_sites()
 
@@ -105,9 +109,13 @@ class SiteScreen(Container):
     @on(Button.Pressed, "#edit_site")
     def handle_edit_site(self) -> None:
         """Handle the edit site button being pressed."""
-        site_name = self.sites_table.get_row_at(self.sites_table.cursor_row)[0]
+        table = self.sites_table
+        if table is None or table.cursor_row is None:
+            return
 
-        def handle_form_closed(result: bool) -> None:
+        site_name = table.get_row_at(table.cursor_row)[0]
+
+        def handle_form_closed(result: Any) -> None:
             if result:
                 self.refresh_sites()
 

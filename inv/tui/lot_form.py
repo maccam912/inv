@@ -11,11 +11,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import DatePicker, Input
+from textual.widgets import Input
 
 from inv.db.models import Lot
 from inv.db.operations import create_lot, read_lot, update_lot
+
+# Import DatePicker from forms to ensure consistency
 from inv.tui.forms import (
+    DatePicker,
     FormScreen,
     create_date_field,
     create_number_field,

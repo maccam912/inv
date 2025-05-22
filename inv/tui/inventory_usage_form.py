@@ -5,15 +5,18 @@
 
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Input, Label, Select, Static
+from textual.widgets import Button, Input, Label, Select, Static
 
 from inv.db.operations import read_inventories, record_stock_usage
 from inv.tui.forms import FormScreen, create_number_field, create_select_field
+
+# Type for inventory selection
+InventorySelection = tuple[str, str]
 
 
 class InventoryUsageForm(FormScreen):
@@ -34,8 +37,8 @@ class InventoryUsageForm(FormScreen):
             **kwargs: Additional keyword arguments to pass to the parent class
         """
         super().__init__(session_factory, "Record Inventory Usage", *args, **kwargs)
-        self.inventory_options: list[tuple[tuple[str, str], str]] = []
-        self.selected_inventory_id: tuple[str, str] | None = None
+        self.inventory_options: list[tuple[InventorySelection, str]] = []
+        self.selected_inventory_id: InventorySelection | None = None
         self.current_quantity: int = 0
 
         # Load available inventory items
@@ -60,8 +63,10 @@ class InventoryUsageForm(FormScreen):
         with Vertical():
             if not self.inventory_options:
                 yield Static("No inventory items available with stock.")
-                # Disable submit button if no inventory
-                self.mount(Static(""), id="submit")
+                # We need to mount the submit button but disable it
+                submit_button = Button("Submit", variant="primary", id="submit")
+                submit_button.disabled = True
+                yield submit_button
             else:
                 # Inventory selection dropdown
                 yield from create_select_field(
@@ -86,28 +91,38 @@ class InventoryUsageForm(FormScreen):
                 )
 
     @property
-    def _selected_inventory(self) -> tuple[str, str] | None:
+    def _selected_inventory(self) -> InventorySelection | None:
         """Get the currently selected inventory."""
         select = self.query_one("#inventory_select", Select)
-        return select.value
+        value = select.value
+        if value is None:
+            return None
+        return cast(InventorySelection, value)
 
     def on_select_changed(self, event: Select.Changed) -> None:
         """Handle inventory selection change."""
         if event.select.id == "inventory_select":
-            self.selected_inventory_id = event.value
+            value = event.value
+            if value is None:
+                self.selected_inventory_id = None
+                return
+
+            self.selected_inventory_id = cast(InventorySelection, value)
 
             # Update current quantity display
-            with self.session_factory() as session:
-                inventories = read_inventories(
-                    session,
-                    lot_number=self.selected_inventory_id[0],
-                    site_name=self.selected_inventory_id[1],
-                )
-                if inventories:
-                    self.current_quantity = inventories[0].current_quantity
-                    self.query_one("#current_quantity", Static).update(
-                        f"{self.current_quantity} units"
+            if self.selected_inventory_id is not None:
+                with self.session_factory() as session:
+                    lot_number, site_name = self.selected_inventory_id
+                    inventories = read_inventories(
+                        session,
+                        lot_number=lot_number,
+                        site_name=site_name,
                     )
+                    if inventories:
+                        self.current_quantity = inventories[0].current_quantity
+                        self.query_one("#current_quantity", Static).update(
+                            f"{self.current_quantity} units"
+                        )
 
     def validate_form(self) -> bool:
         """
@@ -146,6 +161,10 @@ class InventoryUsageForm(FormScreen):
             return
 
         # Get form values
+        if self.selected_inventory_id is None:
+            self.show_message("No inventory selected.")
+            return
+
         lot_number, site_name = self.selected_inventory_id
         quantity_input = self.query_one("#quantity_used", Input)
         quantity_used = int(quantity_input.value)

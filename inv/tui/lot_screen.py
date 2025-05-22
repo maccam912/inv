@@ -101,7 +101,11 @@ class LotScreen(Container):
     def update_edit_button_state(self) -> None:
         """Update the state of the edit button based on the selected row."""
         edit_button = self.query_one("#edit_lot", Button)
-        edit_button.disabled = self.lots_table.cursor_row is None
+        table = self.lots_table
+        if table is not None:
+            edit_button.disabled = table.cursor_row is None
+        else:
+            edit_button.disabled = True
 
     @on(DataTable.RowSelected)
     def handle_row_selected(self) -> None:
@@ -117,7 +121,7 @@ class LotScreen(Container):
     def handle_add_lot(self) -> None:
         """Handle the add lot button being pressed."""
 
-        def handle_form_closed(result: bool) -> None:
+        def handle_form_closed(result: Any) -> None:
             if result:
                 self.refresh_lots()
 
@@ -127,9 +131,13 @@ class LotScreen(Container):
     @on(Button.Pressed, "#edit_lot")
     def handle_edit_lot(self) -> None:
         """Handle the edit lot button being pressed."""
-        lot_number = self.lots_table.get_row_at(self.lots_table.cursor_row)[0]
+        table = self.lots_table
+        if table is None or table.cursor_row is None:
+            return
 
-        def handle_form_closed(result: bool) -> None:
+        lot_number = table.get_row_at(table.cursor_row)[0]
+
+        def handle_form_closed(result: Any) -> None:
             if result:
                 self.refresh_lots()
 

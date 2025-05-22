@@ -97,7 +97,10 @@ class ShipmentScreen(Container):
         edit_button = self.query_one("#edit_shipment", Button)
         record_arrival_button = self.query_one("#record_arrival", Button)
 
-        has_selection = self.shipments_table.cursor_row is not None
+        table = self.shipments_table
+        has_selection = False
+        if table is not None:
+            has_selection = table.cursor_row is not None
 
         edit_button.disabled = not has_selection
         record_arrival_button.disabled = not has_selection
@@ -116,7 +119,7 @@ class ShipmentScreen(Container):
     def handle_add_shipment(self) -> None:
         """Handle the add shipment button being pressed."""
 
-        def handle_form_closed(result: bool) -> None:
+        def handle_form_closed(result: Any) -> None:
             if result:
                 self.refresh_shipments()
 
@@ -126,11 +129,13 @@ class ShipmentScreen(Container):
     @on(Button.Pressed, "#edit_shipment")
     def handle_edit_shipment(self) -> None:
         """Handle the edit shipment button being pressed."""
-        shipment_id = int(
-            self.shipments_table.get_row_at(self.shipments_table.cursor_row)[0]
-        )
+        table = self.shipments_table
+        if table is None or table.cursor_row is None:
+            return
 
-        def handle_form_closed(result: bool) -> None:
+        shipment_id = int(table.get_row_at(table.cursor_row)[0])
+
+        def handle_form_closed(result: Any) -> None:
             if result:
                 self.refresh_shipments()
 
@@ -140,9 +145,11 @@ class ShipmentScreen(Container):
     @on(Button.Pressed, "#record_arrival")
     def handle_record_arrival(self) -> None:
         """Handle the record arrival button being pressed."""
-        shipment_id = int(
-            self.shipments_table.get_row_at(self.shipments_table.cursor_row)[0]
-        )
+        table = self.shipments_table
+        if table is None or table.cursor_row is None:
+            return
+
+        shipment_id = int(table.get_row_at(table.cursor_row)[0])
 
         with self.session_factory() as session:
             try:

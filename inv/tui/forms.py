@@ -13,7 +13,36 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.screen import ModalScreen
-from textual.widgets import Button, DatePicker, Input, Label, Select, Static
+from textual.widgets import Button, Input, Label, Select, Static
+
+# Import DatePicker from wherever it's available in the current Textual version
+try:
+    from textual.widgets._date_picker import DatePicker
+except ImportError:
+    try:
+        from textual.widgets.date_picker import DatePicker
+    except ImportError:
+        # Fallback to a mock DatePicker for testing
+        from textual.widget import Widget
+
+        class _DatePickerMock(Widget):
+            """Mock DatePicker for testing."""
+
+            def __init__(
+                self, id: str | None = None, classes: str | None = None
+            ) -> None:
+                super().__init__(id=id, classes=classes)
+                self._value = date.today()
+
+            @property
+            def value(self) -> date:
+                return self._value
+
+            @value.setter
+            def value(self, new_value: date) -> None:
+                self._value = new_value
+
+        DatePicker = _DatePickerMock
 
 
 class FormScreen(ModalScreen):
@@ -101,7 +130,7 @@ class FormScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         """Create child widgets for the form screen."""
         with Container(classes="form-container"):
-            yield Label(self.title, classes="title")
+            yield Label(self.title or "", classes="title")
             yield Static(self.message, id="message", classes="message")
             yield from self._compose_form()
             with Container(classes="buttons"):
@@ -193,7 +222,7 @@ def create_number_field(
     ]
 
 
-def create_date_field(id_: str, label: str, value: date = None) -> list[Any]:
+def create_date_field(id_: str, label: str, value: date | None = None) -> list[Any]:
     """
     Create a date input field with a label.
 

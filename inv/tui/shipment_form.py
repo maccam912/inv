@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import DatePicker, Input, Select
+from textual.widgets import Input, Select
 
 from inv.db.models import Shipment
 from inv.db.operations import (
@@ -22,7 +22,10 @@ from inv.db.operations import (
     read_sites,
     update_shipment,
 )
+
+# Import DatePicker from forms to ensure consistency
 from inv.tui.forms import (
+    DatePicker,
     FormScreen,
     create_date_field,
     create_number_field,
@@ -177,15 +180,16 @@ class ShipmentForm(FormScreen):
             with self.session_factory() as session:
                 if self.shipment:
                     # Update existing shipment
-                    update_shipment(
-                        session,
-                        shipment_id=self.shipment_id,
-                        lot_number=lot_number,
-                        site_name=site_name,
-                        shipment_date=shipment_date,
-                        quantity_shipped=quantity_shipped,
-                        anticipated_arrival_date=anticipated_arrival_date,
-                    )
+                    if self.shipment_id is not None:
+                        update_shipment(
+                            session,
+                            shipment_id=self.shipment_id,
+                            lot_number=lot_number,
+                            site_name=site_name,
+                            shipment_date=shipment_date,
+                            quantity_shipped=quantity_shipped,
+                            anticipated_arrival_date=anticipated_arrival_date,
+                        )
                 else:
                     # Create new shipment
                     create_shipment(
