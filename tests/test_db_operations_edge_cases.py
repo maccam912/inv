@@ -4,12 +4,12 @@
 """Tests for database operation edge cases and error handling."""
 
 from datetime import date, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from inv.db.models import Inventory, Lot, Shipment, Site, init_db
+from inv.db.models import init_db
 from inv.db.operations import (
     create_inventory,
     create_lot,
@@ -19,7 +19,6 @@ from inv.db.operations import (
     delete_shipment,
     delete_site,
     read_inventory,
-    read_lot,
     read_shipments,
     update_inventory_quantity,
     update_lot,
@@ -29,6 +28,8 @@ from inv.db.operations import (
 
 # Constants for testing
 TEST_QUANTITY = 100
+MULTI_1_SHIPMENT_COUNT = 2
+TOTAL_SHIPMENT_COUNT = 3
 
 
 @pytest.fixture
@@ -59,7 +60,9 @@ def test_update_lot_integrity_error(test_db):
     )
 
     # Mock the commit method to raise IntegrityError
-    with patch.object(test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")):
+    with patch.object(
+        test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")
+    ):
         with pytest.raises(IntegrityError):
             update_lot(
                 test_db,
@@ -79,7 +82,9 @@ def test_delete_lot_integrity_error(test_db):
     )
 
     # Mock the commit method to raise IntegrityError
-    with patch.object(test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")):
+    with patch.object(
+        test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")
+    ):
         with pytest.raises(IntegrityError):
             delete_lot(test_db, lot_number="LOT-DELETE-1")
 
@@ -90,9 +95,13 @@ def test_update_site_integrity_error(test_db):
     create_site(test_db, site_name="SITE-INTEGRITY-1", contact_info="Test Contact")
 
     # Mock the commit method to raise IntegrityError
-    with patch.object(test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")):
+    with patch.object(
+        test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")
+    ):
         with pytest.raises(IntegrityError):
-            update_site(test_db, site_name="SITE-INTEGRITY-1", contact_info="Updated Contact")
+            update_site(
+                test_db, site_name="SITE-INTEGRITY-1", contact_info="Updated Contact"
+            )
 
 
 def test_delete_site_integrity_error(test_db):
@@ -101,7 +110,9 @@ def test_delete_site_integrity_error(test_db):
     create_site(test_db, site_name="SITE-DELETE-1", contact_info="Test Contact")
 
     # Mock the commit method to raise IntegrityError
-    with patch.object(test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")):
+    with patch.object(
+        test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")
+    ):
         with pytest.raises(IntegrityError):
             delete_site(test_db, site_name="SITE-DELETE-1")
 
@@ -127,7 +138,9 @@ def test_update_shipment_integrity_error(test_db):
     )
 
     # Mock the commit method to raise IntegrityError
-    with patch.object(test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")):
+    with patch.object(
+        test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")
+    ):
         with pytest.raises(IntegrityError):
             update_shipment(
                 test_db,
@@ -157,7 +170,9 @@ def test_delete_shipment_integrity_error(test_db):
     )
 
     # Mock the commit method to raise IntegrityError
-    with patch.object(test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")):
+    with patch.object(
+        test_db, "commit", side_effect=IntegrityError("mock", "mock", "mock")
+    ):
         with pytest.raises(IntegrityError):
             delete_shipment(test_db, shipment_id=shipment.shipment_id)
 
@@ -266,7 +281,7 @@ def test_read_shipments_multiple_filters(test_db):
         test_db,
         lot_number="LOT-MULTI-1",
     )
-    assert len(shipments) == 2
+    assert len(shipments) == MULTI_1_SHIPMENT_COUNT
     assert all(s.lot_number == "LOT-MULTI-1" for s in shipments)
 
     # Test filtering by just site
@@ -274,12 +289,12 @@ def test_read_shipments_multiple_filters(test_db):
         test_db,
         site_name="SITE-MULTI-1",
     )
-    assert len(shipments) == 2
+    assert len(shipments) == MULTI_1_SHIPMENT_COUNT
     assert all(s.site_name == "SITE-MULTI-1" for s in shipments)
 
     # Test with no filters
     shipments = read_shipments(test_db)
-    assert len(shipments) == 3
+    assert len(shipments) == TOTAL_SHIPMENT_COUNT
 
 
 def test_update_inventory_zero_quantity(test_db):
