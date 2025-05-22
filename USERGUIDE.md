@@ -23,12 +23,26 @@
 
 `inv` is a terminal-based inventory management application designed for organizations that need to track lots, shipments, and inventory levels across multiple sites. It features a modern Text User Interface (TUI) for easy navigation and management, and uses a SQLite database with SQLAlchemy ORM for robust data storage.
 
-The application helps you:
-- Track lots, sites, shipments, and inventory levels
-- Monitor usage rates and predict stock depletion
-- Get warnings about expiring or low inventory
-- Optimize inventory allocation through transfer suggestions
-- Generate reports on current stock, expirations, and usage trends
+### Key Benefits
+
+- **Centralized Tracking**: Manage all your inventory information in one place
+- **Lot-Based Management**: Track products by lot numbers with associated expiration dates
+- **Multi-Site Support**: Monitor inventory across different physical locations
+- **Proactive Warnings**: Get alerts about expiring products or low inventory levels
+- **Optimization Suggestions**: Receive recommendations for inventory transfers to maximize efficiency
+- **Usage Analytics**: Understand consumption patterns and predict future needs
+- **Terminal-Based Interface**: Operate efficiently with keyboard shortcuts in a lightweight interface
+- **Data Persistence**: Store all inventory data securely in a SQLite database
+
+### Ideal Use Cases
+
+- **Laboratory Supply Management**: Track reagents and materials with expiration dates
+- **Food Distribution**: Monitor perishable items across multiple locations
+- **Medical Supply Tracking**: Ensure critical supplies are available where needed
+- **Retail Inventory**: Manage stock levels across multiple store locations
+- **Small Warehouse Operations**: Track incoming and outgoing shipments
+
+Whether you're managing a small warehouse, distributing products across retail locations, or tracking laboratory supplies, `inv` provides the tools you need to maintain optimal inventory levels and reduce waste from expired products.
 
 ## Installation
 
@@ -60,30 +74,24 @@ By default, `inv` uses a local SQLite database file (`inventory.db`) in the curr
 - Using a network drive for multi-user access
 - Specifying a different local storage location
 
-#### Command Line Options
+#### Database Path Format
 
-Currently, the application does not have command line options for database configuration. Future versions may add this functionality.
+The database path follows SQLAlchemy's connection string format:
 
-#### Manual Configuration
+- **Local SQLite database**: `sqlite:///inventory.db` (default, relative path)
+- **Absolute path**: `sqlite:////absolute/path/to/inventory.db` (note the four slashes)
+- **In-memory database** (for testing): `sqlite:///:memory:`
+- **Network drive**: `sqlite:////server/share/path/to/inventory.db`
 
-To manually configure the database location:
+#### Current Configuration Methods
 
-1. Locate the database initialization in your application code (typically in `app.py`)
-2. Modify the `init_db()` call to specify a custom database path:
-   ```python
-   # Example (for reference only):
-   self.Session: sessionmaker = init_db("sqlite:///path/to/your/inventory.db")
-   ```
+Currently, the application initializes the database with this default location. To change it, you have these options:
 
-#### Network Drive Configuration
+1. **Custom Implementation**: Fork the repository and modify the `init_db()` call in `app.py`
+2. **Environment Variable**: Future versions may support configuration via environment variables
+3. **Command Line Arguments**: Future versions may add command-line options for database configuration
 
-To use a network drive for the database:
-
-1. Ensure the network drive is properly mounted
-2. Use a full path to the network location:
-   ```
-   sqlite:////network/path/to/inventory.db
-   ```
+**Note**: When using a network drive, ensure all users have appropriate permissions to read and write to the database file.
 
 ## Basic Usage
 
@@ -324,9 +332,37 @@ Based on usage rates, the application predicts:
 - How much inventory will remain at expiration
 - Optimal reorder times
 
+### Advanced Usage Patterns
+
+#### Multi-Site Inventory Management
+
+For organizations managing inventory across multiple locations:
+
+1. **Centralized Distribution**: Set up a main warehouse as a central site, with smaller satellite sites
+2. **Transfer Workflow**: 
+   - Create shipments from the central site to satellite sites based on needs
+   - Record arrivals at destination sites
+   - Monitor inventory levels at all sites from the dashboard
+
+#### Lot Batch Tracking
+
+For products with critical expiration management:
+
+1. **FIFO Implementation**: Use the expiration date and lot information to ensure First In, First Out usage
+2. **Expiration Monitoring**: Regularly check the dashboard for expiration warnings
+3. **Strategic Transfers**: Transfer lots approaching expiration to high-usage sites
+
+#### Inventory Optimization
+
+For minimizing waste and maximizing availability:
+
+1. **Usage Pattern Analysis**: Use the reports screen to identify usage patterns
+2. **Strategic Distribution**: Distribute inventory based on usage rates at different sites
+3. **Just-In-Time Inventory**: Use run-out predictions to time new shipments to arrive just before stock depletion
+
 ## Keyboard Shortcuts
 
-The application supports the following keyboard shortcuts:
+The application provides efficient keyboard navigation with the following global shortcuts:
 
 | Key | Function | Description |
 |-----|----------|-------------|
@@ -339,7 +375,33 @@ The application supports the following keyboard shortcuts:
 | `b` | Back to Dashboard | Return to the main dashboard |
 | `q` | Quit | Exit the application |
 
-Additionally, each screen may have its own specific shortcuts for common actions.
+### Screen-Specific Actions
+
+Each screen in the application may also support these common actions:
+
+- **Add/Create**: Add a new record (lot, site, shipment, etc.)
+- **Edit/Update**: Modify an existing record
+- **Delete**: Remove a record
+- **Filter/Search**: Filter or search through records
+- **Sort**: Change the sorting of displayed data
+- **Refresh**: Refresh data display
+
+### Form Navigation
+
+When working with forms:
+
+- **Tab**: Move to the next field
+- **Shift+Tab**: Move to the previous field
+- **Enter**: Submit the form (when on a submit button)
+- **Escape**: Cancel and close the form
+
+### Table Navigation
+
+When working with data tables:
+
+- **Up/Down Arrow Keys**: Navigate between rows
+- **Enter/Double-click**: Select a row for detailed view or editing
+- **Page Up/Page Down**: Scroll through larger datasets
 
 ## Troubleshooting
 
