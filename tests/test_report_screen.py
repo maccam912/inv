@@ -45,9 +45,9 @@ def test_report_screen_init():
     # Check report types are defined
     expected_report_count = 3
     assert len(report_screen.REPORT_TYPES) == expected_report_count
-    assert report_screen.REPORT_TYPES[0][0] == "stock_level"
-    assert report_screen.REPORT_TYPES[1][0] == "expiration"
-    assert report_screen.REPORT_TYPES[2][0] == "usage"
+    assert report_screen.REPORT_TYPES[0][1] == "stock_level"
+    assert report_screen.REPORT_TYPES[1][1] == "expiration"
+    assert report_screen.REPORT_TYPES[2][1] == "usage"
 
 
 def test_report_screen_with_session(mock_session_factory):

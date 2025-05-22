@@ -33,9 +33,9 @@ class ReportScreen(Container):
     """Screen for generating and viewing inventory reports."""
 
     REPORT_TYPES: ClassVar[list[tuple[str, str]]] = [
-        ("stock_level", "Current Stock Levels"),
-        ("expiration", "Upcoming Expirations"),
-        ("usage", "Usage by Site"),
+        ("Current Stock Levels", "stock_level"),
+        ("Upcoming Expirations", "expiration"),
+        ("Usage by Site", "usage"),
     ]
 
     def __init__(
