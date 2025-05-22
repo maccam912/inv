@@ -5,6 +5,9 @@
 
 ---
 
+![Dashboard Screenshot](screenshots/dashboard.png)
+*The main dashboard displaying inventory statistics, warnings, and suggestions*
+
 ## Overview
 
 `inv` is a terminal-based inventory management application designed for organizations that need to track lots, shipments, and inventory levels across multiple sites. It features a modern Textual TUI (Text User Interface) for easy navigation and management, and uses a SQLite database with SQLAlchemy ORM for robust data storage.
@@ -29,17 +32,44 @@
    - The app launches a terminal UI with a main dashboard, navigation menu, and dedicated screens for managing lots, sites, shipments, and inventory.
    - Data entry and editing is performed via TUI forms.
 
+   ![Lot Management](screenshots/lot_management.png)
+   *Lot management screen showing list of lots and their details*
+
 3. **Inventory Logic:**
    - When shipments are received or stock is used, inventory levels are updated automatically.
    - The app calculates usage rates and predicts when lots will run out or expire.
    - Warnings and suggestions (such as transfers) are displayed on the dashboard.
 
+   ![Inventory Tracking](screenshots/inventory_tracking.png)
+   *Inventory tracking screen showing current stock levels across sites*
+
 4. **Reporting:**
    - Users can generate simple reports on current stock, upcoming expirations, and usage trends.
+
+   ![Reports](screenshots/reports.png)
+   *Reports screen showing usage analytics and expiration forecasts*
 
 5. **Testing and Packaging:**
    - The project includes unit tests for core logic and database operations.
    - The app can be packaged and distributed using modern Python packaging tools (e.g., Hatch).
+
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+*Main dashboard with inventory statistics, warnings, and transfer suggestions*
+
+### Lot Management
+![Lot Management](screenshots/lot_management.png)
+*Managing lots with creation, editing, and tracking capabilities*
+
+### Inventory Tracking
+![Inventory Tracking](screenshots/inventory_tracking.png)
+*Real-time inventory tracking across multiple sites*
+
+### Reports and Analytics
+![Reports](screenshots/reports.png)
+*Generate and view reports on stock levels, expirations, and usage patterns*
 
 ## Installation
 
