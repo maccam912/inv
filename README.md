@@ -111,6 +111,8 @@ hatch run format
 hatch run typecheck
 ```
 
+
+
 ## Roadmap
 
 The project is developed in phases:
