@@ -56,6 +56,8 @@ pip install inv
 2. Follow the on-screen instructions to navigate and manage your inventory.
 3. Configure the database path if you wish to use a network drive (see app settings or CLI options).
 
+For detailed instructions on how to use the application, please refer to the [User Guide](USERGUIDE.md).
+
 ## Roadmap
 
 The project is developed in phases:
