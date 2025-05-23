@@ -104,8 +104,12 @@ class DatePicker(Widget):
 
     def _update_display(self) -> None:
         """Update the date display."""
-        date_display = self.query_one("#date-display", Label)
-        date_display.update(self._value.strftime("%Y-%m-%d"))
+        try:
+            date_display = self.query_one("#date-display", Label)
+            date_display.update(self._value.strftime("%Y-%m-%d"))
+        except Exception:
+            # Widget might not be mounted yet, we'll update on mount
+            pass
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button press events.
