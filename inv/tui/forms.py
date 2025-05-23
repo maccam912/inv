@@ -15,34 +15,8 @@ from textual.containers import Container
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
 
-# Import DatePicker from wherever it's available in the current Textual version
-try:
-    from textual.widgets._date_picker import DatePicker
-except ImportError:
-    try:
-        from textual.widgets.date_picker import DatePicker
-    except ImportError:
-        # Fallback to a mock DatePicker for testing
-        from textual.widget import Widget
-
-        class _DatePickerMock(Widget):
-            """Mock DatePicker for testing."""
-
-            def __init__(
-                self, id: str | None = None, classes: str | None = None
-            ) -> None:
-                super().__init__(id=id, classes=classes)
-                self._value = date.today()
-
-            @property
-            def value(self) -> date:
-                return self._value
-
-            @value.setter
-            def value(self, new_value: date) -> None:
-                self._value = new_value
-
-        DatePicker = _DatePickerMock
+# Import our custom DatePicker widget
+from inv.tui.date_picker import DatePicker
 
 
 class FormScreen(ModalScreen):
