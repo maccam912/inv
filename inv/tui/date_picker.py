@@ -4,7 +4,7 @@
 """Custom DatePicker widget for Textual."""
 
 from datetime import date, timedelta
-from typing import Callable, ClassVar
+from typing import Any, ClassVar
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -12,7 +12,7 @@ from textual.containers import Horizontal
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Button, Label, Static
+from textual.widgets import Button, Label
 
 
 class DatePicker(Widget):
@@ -43,7 +43,7 @@ class DatePicker(Widget):
     }
     """
 
-    BINDINGS: ClassVar[list[Binding]] = [
+    BINDINGS: ClassVar[list[Any]] = [
         Binding("left", "previous_day", "Previous Day", show=False),
         Binding("right", "next_day", "Next Day", show=False),
         Binding("up", "previous_month", "Previous Month", show=False),
@@ -153,9 +153,10 @@ class DatePicker(Widget):
 
     def action_next_month(self) -> None:
         """Move to the next month."""
+        MONTHS_IN_YEAR = 12
         year = self._value.year
         month = self._value.month + 1
-        if month > 12:
+        if month > MONTHS_IN_YEAR:
             month = 1
             year += 1
         # Handle month length differences
@@ -169,26 +170,34 @@ class DatePicker(Widget):
 
     def action_previous_year(self) -> None:
         """Move to the previous year."""
+        FEBRUARY = 2
+        LEAP_DAY = 29
+        REGULAR_FEB_DAYS = 28
+
         year = self._value.year - 1
         month = self._value.month
         day = self._value.day
-        
+
         # Handle February 29 in leap years
-        if month == 2 and day == 29:
-            day = 28
-        
+        if month == FEBRUARY and day == LEAP_DAY:
+            day = REGULAR_FEB_DAYS
+
         self._value = date(year, month, day)
 
     def action_next_year(self) -> None:
         """Move to the next year."""
+        FEBRUARY = 2
+        LEAP_DAY = 29
+        REGULAR_FEB_DAYS = 28
+
         year = self._value.year + 1
         month = self._value.month
         day = self._value.day
-        
+
         # Handle February 29 in leap years
-        if month == 2 and day == 29:
-            day = 28
-            
+        if month == FEBRUARY and day == LEAP_DAY:
+            day = REGULAR_FEB_DAYS
+
         self._value = date(year, month, day)
 
     @property
