@@ -258,6 +258,10 @@ def create_select_field(
     Returns:
         A list containing the label and select widgets
     """
+    # If value is None and there are options available, use the first option's value
+    if value is None and options:
+        value = options[0][0]
+
     return [
         Label(label, classes="field-label"),
         Select(
