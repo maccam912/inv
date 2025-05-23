@@ -54,9 +54,13 @@ Whether you're managing a small warehouse, distributing products across retail l
 
 ### Installation Steps
 
-1. Install using pip:
+1. Install directly from GitHub:
    ```bash
-   pip install inv
+   # Using pip
+   pip install git+https://github.com/maccam912/inv.git
+   
+   # Or using UVX
+   uvx install git+https://github.com/maccam912/inv.git
    ```
 
 2. Verify installation:
