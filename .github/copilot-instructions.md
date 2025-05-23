@@ -1,74 +1,76 @@
-Project Tooling
+# AI Copilot Development Instructions
 
-Use Hatch for all testing, packaging, and environment management.
+## Project Environment and Tooling
 
-Do not use pip install directly—there’s a firewall blocking internet access. All deps must be managed offline or via Hatch.
+**Primary tool:** Use Hatch for all testing, packaging, and environment management.
 
-If you absolutely must, you may fall back to UV, but Hatch is the first choice.
+**Important:** Do not use `pip install` directly due to firewall restrictions blocking internet access. All dependencies must be managed offline or through Hatch.
 
-Follow the Plan
+**Fallback option:** You may use UV if absolutely necessary, but Hatch is the preferred and primary choice.
 
-Always work from README.md.
+## Project Planning and Requirements
 
-If the README is unclear, ask immediately—do not make assumptions.
+**Always follow the plan:** Work exclusively from the README.md file as your source of truth.
 
-If you think the plan needs updating, propose changes to the team before coding.
+**When unclear:** If the README contains ambiguous or missing information, ask for clarification immediately. Do not make assumptions or guess at requirements.
 
-Architecture Choices
+**Plan changes:** If you believe the project plan needs updating or modification, propose changes to the team before writing any code.
 
-TUI library: use textual.
+## Architecture and Technology Stack
 
-Database: use SQLite.
+**User Interface:** Use the Textual library for all terminal user interface (TUI) components.
 
-Code Quality
+**Database:** Use SQLite for all data storage requirements.
 
-Write testable functions and modules.
+## Code Quality Standards
 
-Add thorough unit tests alongside your code.
+**Function design:** Write functions and modules that are easily testable and maintainable.
 
-Document every function, class, and module with docstrings.
+**Testing requirements:** Add comprehensive unit tests alongside all code you write. When fixing bugs, always include regression tests to prevent the same issue from recurring.
 
-Use type hints everywhere reasonable.
+**Documentation:** Every function, class, and module must include clear docstrings explaining purpose, parameters, return values, and usage.
 
-Pre-PR Checks
+**Type safety:** Use type hints throughout the codebase wherever they add clarity and safety.
 
-Before creating any Pull Request:
+## Pre-Pull Request Validation
 
-Run uvx hatch run check locally.
+**Mandatory check:** Before creating any Pull Request, you must run `uvx hatch run check` locally.
 
-Fix all errors and warnings.
+**Fix all issues:** Address every error and warning reported by the check command.
 
-Never skip this step—PRs with failing checks are rejected automatically.
+**No exceptions:** This step is non-negotiable. Pull Requests with failing checks will be automatically rejected.
 
-Branch & Commit Best Practices
+## Branch Naming and Commit Standards
 
-Use feature/ or bugfix/ prefixes in branch names (e.g., feature/add-login).
+**Branch naming:** Use descriptive prefixes for all branches:
+- `feature/` for new functionality (example: `feature/add-user-authentication`)
+- `bugfix/` for bug fixes (example: `bugfix/fix-login-validation`)
 
-Write clear, concise commit messages:
+**Commit message format:**
+- Title line: Concise summary in 50 characters or less
+- Body (optional): Explain the reasoning behind the change, not just what was changed
 
-Title: short summary (50 chars max).
+## Pull Request Guidelines
 
-Body (optional): explain “why,” not “what.”
+**Required information in PR description:**
+- Clear explanation of what you implemented or changed
+- Justification for any significant design decisions made
+- Links to relevant issues, discussions, or documentation
 
-PR Etiquette
+**Documentation updates:** If your changes affect user-facing functionality or developer workflows, update the README or relevant documentation files.
 
-Include a brief description of:
+## Continuous Integration Requirements
 
-What you’ve done.
+**Pipeline compliance:** Ensure your code passes all CI pipeline checks including linting, formatting, and automated tests before requesting review.
 
-Why you made any design decisions.
+**Local validation:** Always run `uvx hatch run check` locally and confirm zero errors before opening any Pull Request.
 
-Link to any relevant issue or discussion.
+**Quality gate:** Pull Requests with failing checks will be rejected automatically, so validate locally every time.
 
-If your change affects documentation, update README or docs too.
+## Key Reminders for AI Assistants
 
-Continuous Integration
-
-Ensure your code passes CI pipelines (linting, formatting, tests) on the remote before requesting review.
-
-🚨 IMPORTANT
-Always run:
-
-uvx hatch run check
-locally and confirm zero errors before opening a PR.
-A PR with failing checks will be rejected—so run the checks every time!
+1. **Never skip the check command** - `uvx hatch run check` must pass before any PR
+2. **Always add regression tests** when fixing bugs to prevent recurrence
+3. **Ask for clarification** rather than making assumptions about unclear requirements
+4. **Follow the established architecture** - use Textual for UI and SQLite for data
+5. **Use Hatch as the primary tool** for all environment and dependency management
