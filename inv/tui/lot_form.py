@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Input
+from textual.widgets import Input, Label
 
 from inv.db.models import Lot
 from inv.db.operations import create_lot, read_lot, update_lot
@@ -59,15 +59,15 @@ class LotForm(FormScreen):
         with Vertical():
             if self.lot:
                 # Editing an existing lot
-                yield from create_text_field(
-                    "lot_number",
-                    "Lot Number:",
+                # Create lot number field (read-only in edit mode)
+                yield Label("Lot Number:", classes="field-label")
+                yield Input(
                     value=self.lot.lot_number,
                     placeholder="Enter lot number",
+                    id="lot_number",
+                    classes="input-field",
+                    disabled=True,  # Make it read-only directly
                 )
-                # Make the lot number field read-only in edit mode
-                lot_number_input = self.query_one("#lot_number", Input)
-                lot_number_input.disabled = True
 
                 yield from create_date_field(
                     "expiration_date",

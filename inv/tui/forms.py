@@ -160,7 +160,16 @@ class FormScreen(ModalScreen):
         """Handle the cancel button being pressed."""
         self.dismiss()
 
-    @on(Button.Pressed, "#submit")
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """
+        Handle button press events.
+
+        Args:
+            event: The button press event
+        """
+        if event.button.id == "submit":
+            self.handle_submit()
+
     def handle_submit(self) -> None:
         """
         Handle the submit button being pressed.

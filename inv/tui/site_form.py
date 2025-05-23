@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Input
+from textual.widgets import Input, Label
 
 from inv.db.models import Site
 from inv.db.operations import create_site, read_site, update_site
@@ -51,16 +51,17 @@ class SiteForm(FormScreen):
         with Vertical():
             if self.site:
                 # Editing an existing site
-                yield from create_text_field(
-                    "site_name",
-                    "Site Name:",
+                # Create site name field (read-only in edit mode)
+                yield Label("Site Name:", classes="field-label")
+                yield Input(
                     value=self.site.site_name,
                     placeholder="Enter site name",
+                    id="site_name",
+                    classes="input-field",
+                    disabled=True,  # Make it read-only directly
                 )
-                # Make the site name field read-only in edit mode
-                site_name_input = self.query_one("#site_name", Input)
-                site_name_input.disabled = True
 
+                # Create contact info field
                 yield from create_text_field(
                     "contact_info",
                     "Contact Information:",
