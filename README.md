@@ -1,8 +1,5 @@
 # Inventory Management TUI (`inv`)
 
-[![PyPI - Version](https://img.shields.io/pypi/v/inv.svg)](https://pypi.org/project/inv)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/inv.svg)](https://pypi.org/project/inv)
-
 ---
 
 ## Overview
@@ -44,7 +41,11 @@
 ## Installation
 
 ```console
-pip install inv
+# Install directly from GitHub
+pip install git+https://github.com/maccam912/inv.git
+
+# Or using UVX
+uvx install git+https://github.com/maccam912/inv.git
 ```
 
 ## Getting Started
